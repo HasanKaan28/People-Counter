@@ -1,0 +1,30 @@
+{
+    "camera_source": "0",
+    "camera_name": "Hikvision Tuvalet Giris Kamerasi",
+    "rtsp_transport": "tcp",
+    "price_per_adult": 20,
+    "price_per_child": 0,
+    "charge_children": false,
+    "child_height_threshold": 160,
+    "line_coords": {
+        "x1": 0.1,
+        "y1": 0.5,
+        "x2": 0.9,
+        "y2": 0.5
+    },
+    "in_direction": "left",
+    "google_sync": {
+        "enabled": false,
+        "webhook_url": "",
+        "sync_interval_seconds": 30,
+        "local_csv_backup": true,
+        "backup_folder": "gunluk_raporlar"
+    },
+    "operating_hours": {
+        "enabled": false,
+        "start_time": "08:00",
+        "end_time": "21:00"
+    },
+    "model_confidence": 0.35,
+    "tracker_type": "bytetrack.yaml"
+}

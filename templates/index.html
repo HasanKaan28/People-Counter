@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuvalet Giriş & Gelir Takip Sistemi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',
+                        darkbg: '#0f172a',
+                        cardbg: '#1e293b'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .glow-green {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+        .canvas-container {
+            position: relative;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-emerald-500 selection:text-white">
+
+    <!-- ÜST BAŞLIK / NAVİGASYON -->
+    <header class="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-900/30">
+                <i data-lucide="scan-face" class="w-6 h-6 text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                    Tuvalet Giriş & Ciro Takip Sistemi
+                    <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">CANLI</span>
+                </h1>
+                <p class="text-xs text-slate-400">Piknik Alanı Hikvision Yapay Zeka Sayacı (Günde 13 Saat Kesintisiz)</p>
+            </div>
+        </div>
+
+        <!-- Üst Sağ Butonlar ve Durum İndikatörleri -->
+        <div class="flex items-center flex-wrap gap-2.5">
+            <!-- Kamera Durumu Rozeti -->
+            <div id="badge-camera" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span id="txt-camera-status">Kamera: Bağlanıyor</span>
+                <span id="txt-camera-fps" class="text-slate-500 font-mono">0 FPS</span>
+            </div>
+
+            <!-- Google Drive / Sheets Durumu -->
+            <button onclick="openGoogleModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-xs text-slate-300 transition">
+                <i data-lucide="cloud" class="w-4 h-4 text-emerald-400"></i>
+                <span id="txt-google-status">Google Drive: Bağlı</span>
+            </button>
+
+            <!-- Telefonla İzle (QR Kod) -->
+            <button onclick="openQrModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-md shadow-emerald-900/20 transition">
+                <i data-lucide="smartphone" class="w-4 h-4"></i>
+                <span>Telefonda Aç</span>
+            </button>
+
+            <!-- Ayarlar -->
+            <button onclick="openSettingsModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition" title="Ayarlar">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Sıfırla -->
+            <button onclick="confirmReset()" class="p-2 rounded-lg bg-slate-800 hover:bg-rose-950/40 border border-slate-700 hover:border-rose-800 text-slate-400 hover:text-rose-400 transition" title="Günü Sıfırla">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ANA İÇERİK -->
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-6">
+
+        <!-- CANLI SAYAC KARTLARI -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            
+            <!-- Toplam Giren -->
+            <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 lg:p-5 flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Toplam Giriş</span>
+                    <div class="p-2 rounded-xl bg-blue-500/10 text-blue-400">
+                        <i data-lucide="users" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div id="stat-total" class="text-3xl lg:text-4xl font-black text-white tracking-tight font-mono">0</div>
+                    <p class="text-xs text-slate-400 mt-1">Bugün tuvalete giren toplam kişi</p>
+                </div>
+                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-blue-500/5 rounded-full blur-xl pointer-events-none"></div>
+            </div>
+
+            <!-- Yetişkin Girişi -->
+            <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 lg:p-5 flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Yetişkin Sayısı</span>
+                    <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+                        <i data-lucide="user-check" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div id="stat-adults" class="text-3xl lg:text-4xl font-black text-emerald-400 tracking-tight font-mono">0</div>
+                    <p class="text-xs text-slate-400 mt-1">Ücretli tam giriş</p>
+                </div>
+                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl pointer-events-none"></div>
+            </div>
+
+            <!-- Çocuk Girişi -->
+            <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 lg:p-5 flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Çocuk Sayısı</span>
+                    <div class="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+                        <i data-lucide="baby" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div id="stat-children" class="text-3xl lg:text-4xl font-black text-amber-400 tracking-tight font-mono">0</div>
+                    <p id="stat-child-note" class="text-xs text-slate-400 mt-1">Büyüklerin yanında girenler</p>
+                </div>
+                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-500/5 rounded-full blur-xl pointer-events-none"></div>
+            </div>
+
+            <!-- TOPLAM CİRO (KASA) -->
+            <div class="bg-gradient-to-br from-emerald-950/70 to-slate-900 border border-emerald-500/30 rounded-2xl p-4 lg:p-5 flex flex-col justify-between relative overflow-hidden glow-green">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Tahsil Edilen Ciro</span>
+                    <div class="p-2 rounded-xl bg-emerald-500/20 text-emerald-300">
+                        <i data-lucide="wallet" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-baseline gap-1">
+                        <div id="stat-revenue" class="text-3xl lg:text-4xl font-black text-white tracking-tight font-mono">0</div>
+                        <span class="text-xl font-bold text-emerald-400">₺</span>
+                    </div>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-xs text-slate-300">Kişi Başı:</span>
+                        <input id="input-quick-price" type="number" step="5" min="0" value="20" 
+                               onchange="updateQuickPrice(this.value)"
+                               class="w-14 bg-slate-800 border border-slate-600 rounded px-1.5 py-0.5 text-xs text-white text-center font-bold focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                        <span class="text-xs text-slate-400">TL</span>
+                    </div>
+                </div>
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+            </div>
+
+        </div>
+
+        <!-- ORTA BÖLÜM: CANLI KAMERA & KONTROL PANELİ -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- SOL / ORTA (2 Kolon): CANLI KAMERA AKIŞI -->
+            <div class="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col">
+                <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-800/80">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="video" class="w-5 h-5 text-emerald-400"></i>
+                        <span class="font-bold text-sm text-slate-200">Kamera Canlı Takip & Sanal Çizgi</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="btn-draw-line" onclick="toggleLineDrawing()" class="px-3 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
+                            <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                            <span id="txt-draw-line">Kapı Çizgisini Düzenle</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kamera Video Kutusu ve Tıklanabilir Çizim Katmanı -->
+                <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center border border-slate-800/90 shadow-2xl">
+                    <img id="camera-stream" src="/video_feed" alt="Kamera Akışı" class="w-full h-full object-contain select-none">
+                    
+                    <!-- Çizgi Çizim Katmanı (Overlay Canvas) -->
+                    <canvas id="drawing-canvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+
+                    <!-- Çizim Modu Uyarısı -->
+                    <div id="draw-helper-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-amber-500/95 text-slate-950 font-bold text-xs px-4 py-2 rounded-full shadow-lg flex items-center gap-2 z-20">
+                        <i data-lucide="info" class="w-4 h-4"></i>
+                        <span>Kapı eşiğini belirlemek için ekranda 2 noktaya tıklayın (Başlangıç ve Bitiş)</span>
+                    </div>
+                </div>
+
+                <!-- Alt Kamera Bilgi Çubuğu -->
+                <div class="mt-3 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
+                    <div class="flex items-center gap-3">
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span> Yetişkin Kutusu (Mavi)</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-500 inline-block"></span> Çocuk Kutusu (Sarı)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-yellow-400 inline-block"></span> Geçiş Çizgisi</span>
+                    </div>
+                    <div class="text-slate-500">
+                        Giriş Yönü: <span id="lbl-direction" class="font-bold text-slate-300">AŞAĞI</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAĞ KOLON (1 Kolon): SAATLİK GRAFİK VE SON GİRİŞLER -->
+            <div class="space-y-6">
+
+                <!-- Saatlik Giriş Grafiği -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-400"></i>
+                            <span class="font-bold text-sm text-slate-200">Bugünkü Saatlik Yoğunluk</span>
+                        </div>
+                    </div>
+                    <div class="h-44 w-full">
+                        <canvas id="hourlyChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Son Geçişler Akışı (Live Activity Feed) -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="history" class="w-4 h-4 text-blue-400"></i>
+                            <span class="font-bold text-sm text-slate-200">Son Geçişler</span>
+                        </div>
+                        <span class="text-xs text-slate-500" id="txt-last-event-time">Anlık</span>
+                    </div>
+                    <div id="recent-entrances-list" class="space-y-2 max-h-56 overflow-y-auto pr-1 text-xs">
+                        <div class="text-slate-500 text-center py-4">Henüz geçiş tespit edilmedi.</div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- MODAL 1: TELEFON İLE İZLEME (QR KOD) -->
+    <div id="modal-qr" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full text-center relative shadow-2xl">
+            <button onclick="closeQrModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="smartphone" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-1">Telefondan Canlı İzleyin</h3>
+            <p class="text-xs text-slate-400 mb-4">Piknik alanındaki Wi-Fi ağına bağlı telefonunuzla kamerayı bu QR koda tutun:</p>
+            
+            <div class="bg-white p-4 rounded-2xl inline-block mb-4 shadow-lg">
+                <img id="qr-code-img" src="/api/qr" alt="Mobil Bağlantı QR Kodu" class="w-48 h-48 mx-auto">
+            </div>
+
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono text-emerald-400 break-all select-all">
+                <span id="txt-mobile-url">http://...</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-3">Telefonunuzdan istediğiniz zaman canlı görüntüyü ve kasayı takip edebilirsiniz.</p>
+        </div>
+    </div>
+
+    <!-- MODAL 2: AYARLAR -->
+    <div id="modal-settings" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full relative shadow-2xl max-h-[90vh] overflow-y-auto">
+            <button onclick="closeSettingsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300">
+                    <i data-lucide="sliders" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white">Sistem & Kamera Ayarları</h3>
+                    <p class="text-xs text-slate-400">Hikvision kamera bağlantısı ve ücret kuralları</p>
+                </div>
+            </div>
+
+            <form id="settings-form" onsubmit="saveSettings(event)" class="space-y-4 text-xs">
+                
+                <!-- Hikvision 8 Kamera / NVR Kanal Seçici -->
+                <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-200 flex items-center gap-1.5">
+                            <i data-lucide="cctv" class="w-4 h-4 text-emerald-400"></i>
+                            Hikvision 8 Kameralı Kayıt Cihazı (NVR/DVR)
+                        </span>
+                        <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Kolay Kurulum</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="col-span-3 sm:col-span-1">
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Cihaz IP Adresi</label>
+                            <input id="nvr-ip" type="text" placeholder="192.168.1.64" 
+                                   class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Kullanıcı Adı</label>
+                            <input id="nvr-user" type="text" placeholder="admin" value="admin"
+                                   class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Kamera Şifresi</label>
+                            <input id="nvr-pass" type="password" placeholder="Şifreniz" 
+                                   class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- 8 Kamera Kanal Butonları -->
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-300 mb-1.5">Tuvaleti Gösteren Kamerayı Seçin (1 - 8):</label>
+                        <div class="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+                            <button type="button" onclick="selectChannel(1)" id="btn-chan-1" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 1</button>
+                            <button type="button" onclick="selectChannel(2)" id="btn-chan-2" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 2</button>
+                            <button type="button" onclick="selectChannel(3)" id="btn-chan-3" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 3</button>
+                            <button type="button" onclick="selectChannel(4)" id="btn-chan-4" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 4</button>
+                            <button type="button" onclick="selectChannel(5)" id="btn-chan-5" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 5</button>
+                            <button type="button" onclick="selectChannel(6)" id="btn-chan-6" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 6</button>
+                            <button type="button" onclick="selectChannel(7)" id="btn-chan-7" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 7</button>
+                            <button type="button" onclick="selectChannel(8)" id="btn-chan-8" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 8</button>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Hangi kameranın tuvalete baktığını bilmiyorsanız numaralara sırayla basıp ekrandan görüntüyü kontrol edebilirsiniz.</p>
+                    </div>
+                </div>
+
+                <!-- Manuel RTSP veya Test Kamerası -->
+                <div class="pt-2">
+                    <label class="block font-semibold text-slate-300 mb-1">Oluşturulan RTSP Adresi veya Özel Kaynak</label>
+                    <input id="set-camera-source" type="text" 
+                           class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-mono text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                           placeholder="rtsp://admin:sifre@192.168.1.64:554/Streaming/Channels/102 veya 0">
+                    <div class="flex items-center justify-between mt-1 text-[11px] text-slate-500">
+                        <span>Bilgisayar kamerasını denemek için <code class="text-slate-300">0</code> yazabilirsiniz.</span>
+                        <button type="button" onclick="document.getElementById('set-camera-source').value = '0'" class="text-emerald-400 hover:underline">Webcam Testi Yap (0)</button>
+                    </div>
+                </div>
+
+                <!-- Fiyatlandırma -->
+                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Yetişkin Giriş Ücreti (TL)</label>
+                        <input id="set-price-adult" type="number" step="1" min="0" value="20"
+                               class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-bold focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Çocuk Giriş Ücreti (TL)</label>
+                        <input id="set-price-child" type="number" step="1" min="0" value="0"
+                               class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-bold focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Çocuk Ücret Seçimi -->
+                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                    <div>
+                        <div class="font-semibold text-slate-200">Çocuklardan da Ücret Alınsın</div>
+                        <div class="text-[11px] text-slate-400">Kapalıysa çocuk girişleri sadece sayılır, kasaya para eklenmez.</div>
+                    </div>
+                    <input id="set-charge-children" type="checkbox" class="w-5 h-5 accent-emerald-500 rounded cursor-pointer">
+                </div>
+
+                <!-- Çocuk Boyut Eşiği -->
+                <div class="pt-2 border-t border-slate-800">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="font-semibold text-slate-300">Çocuk / Yetişkin Boyut Eşiği (Piksel)</label>
+                        <span id="val-height-threshold" class="font-mono text-emerald-400 font-bold">160 px</span>
+                    </div>
+                    <input id="set-height-threshold" type="range" min="80" max="350" step="5" value="160"
+                           oninput="document.getElementById('val-height-threshold').innerText = this.value + ' px'"
+                           class="w-full accent-emerald-500 cursor-pointer">
+                    <p class="text-slate-500 text-[11px] mt-1">Tespit kutusu boyu bu değerin altında kalan kişiler otomatik çocuk olarak sınıflandırılır.</p>
+                </div>
+
+                <!-- Giriş Yönü -->
+                <div class="pt-2 border-t border-slate-800">
+                    <label class="block font-semibold text-slate-300 mb-1">İçeri Giriş Yönü</label>
+                    <select id="set-direction" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                        <option value="down">Yukarıdan Aşağıya Doğru (Önerilen)</option>
+                        <option value="up">Aşağıdan Yukarıya Doğru</option>
+                        <option value="right">Soldan Sağa Doğru</option>
+                        <option value="left">Sağdan Sola Doğru</option>
+                    </select>
+                </div>
+
+                <!-- Butonlar -->
+                <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition">İptal</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-lg shadow-emerald-900/20">Ayarları Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: GOOGLE DRIVE / SHEETS SENKRONİZASYONU -->
+    <div id="modal-google" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full relative shadow-2xl">
+            <button onclick="closeGoogleModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                    <i data-lucide="cloud" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white">Google Drive / E-Tablo Canlı Senkronizasyon</h3>
+                    <p class="text-xs text-slate-400">Verileri her an cep telefonunuzdaki Google Drive uygulamasında görün</p>
+                </div>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                    <div class="font-bold text-slate-200 flex items-center gap-1.5">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                        Nasıl Çalışır?
+                    </div>
+                    <p class="text-slate-400 leading-relaxed">
+                        Google Drive'ınızda açacağınız bir E-Tabloya sistem her tuvalet girişinde ve periyodik olarak canlı kişi sayısını ve ciroyu işler. Piknik alanında olmasanız bile dünyanın her yerinden cep telefonunuzdan kasayı anlık takip edebilirsiniz.
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Google Apps Script Webhook URL</label>
+                    <input id="set-google-webhook" type="text"
+                           placeholder="https://script.google.com/macros/s/.../exec"
+                           class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                    <p class="text-slate-500 text-[11px] mt-1">Google E-Tablolar > Uzantılar > Apps Script üzerinden oluşturulan Web Uygulaması bağlantısı.</p>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
+                    <div>
+                        <div class="font-semibold text-slate-200">Google Senkronizasyonu Aktif</div>
+                        <div class="text-[11px] text-slate-400">Veriler anlık olarak Google Drive'a gönderilsin</div>
+                    </div>
+                    <input id="set-google-enabled" type="checkbox" class="w-5 h-5 accent-emerald-500 rounded cursor-pointer">
+                </div>
+
+                <div class="flex items-center justify-between pt-2">
+                    <button onclick="testGoogleSync()" type="button" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5">
+                        <i data-lucide="send" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span>Test Verisi Gönder</span>
+                    </button>
+                    <button onclick="saveGoogleSettings()" type="button" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT MOTORU -->
+    <script>
+        // Lucide İkonlarını Başlat
+        lucide.createIcons();
+
+        let currentConfig = {};
+        let hourlyChart = null;
+        let isDrawingMode = false;
+        let lineClicks = [];
+
+        // Sayfa Yüklendiğinde
+        document.addEventListener("DOMContentLoaded", () => {
+            initChart();
+            loadSettings();
+            fetchStats();
+            fetchHistory();
+            fetchMobileUrl();
+
+            // Canlı periyodik güncellemeler (Her 1.5 saniyede bir sayaçlar güncellenir)
+            setInterval(fetchStats, 1500);
+            setInterval(fetchHistory, 10000);
+        });
+
+        // Chart.js Başlatma
+        function initChart() {
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+            hourlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'],
+                    datasets: [{
+                        label: 'Giriş',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        backgroundColor: '#10b981',
+                        borderRadius: 6,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#64748b', font: { size: 10 } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#1e293b' },
+                            ticks: { color: '#64748b', font: { size: 10 }, stepSize: 5 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Anlık İstatistikleri Çekme
+        async function fetchStats() {
+            try {
+                const res = await fetch('/api/stats');
+                if (!res.ok) return;
+                const data = await res.json();
+
+                // Sayaçları güncelle
+                document.getElementById('stat-total').innerText = data.total_count;
+                document.getElementById('stat-adults').innerText = data.adult_count;
+                document.getElementById('stat-children').innerText = data.child_count;
+                document.getElementById('stat-revenue').innerText = Number(data.total_revenue).toLocaleString('tr-TR');
+
+                // Kamera durumu rozeti
+                const camBadge = document.getElementById('badge-camera');
+                const txtStatus = document.getElementById('txt-camera-status');
+                const txtFps = document.getElementById('txt-camera-fps');
+
+                if (data.camera.connected) {
+                    txtStatus.innerText = 'Kamera Canlı';
+                    txtFps.innerText = data.camera.fps + ' FPS';
+                    camBadge.classList.remove('border-rose-800', 'text-rose-400');
+                    camBadge.classList.add('border-slate-700', 'text-slate-300');
+                } else {
+                    txtStatus.innerText = data.camera.status;
+                    txtFps.innerText = '';
+                    camBadge.classList.remove('border-slate-700', 'text-slate-300');
+                    camBadge.classList.add('border-rose-800', 'text-rose-400');
+                }
+
+                // Google senkronizasyon durumu
+                const googleTxt = document.getElementById('txt-google-status');
+                if (data.google_sync && data.google_sync.enabled) {
+                    googleTxt.innerText = data.google_sync.last_sync ? 'Google: ' + data.google_sync.last_sync : 'Google: Aktif';
+                } else {
+                    googleTxt.innerText = 'Google Drive';
+                }
+
+            } catch (err) {
+                console.error("İstatistik hatası:", err);
+            }
+        }
+
+        // Saatlik Grafiği ve Son Girişleri Güncelleme
+        async function fetchHistory() {
+            try {
+                const res = await fetch('/api/history');
+                if (!res.ok) return;
+                const data = await res.json();
+
+                // Grafik verilerini güncelle (Saat 08:00 ile 21:00 arası piknik saatleri)
+                if (hourlyChart && data.hourly) {
+                    const filtered = data.hourly.filter(h => {
+                        const hr = parseInt(h.hour);
+                        return hr >= 8 && hr <= 22;
+                    });
+                    hourlyChart.data.labels = filtered.map(h => h.hour);
+                    hourlyChart.data.datasets[0].data = filtered.map(h => h.total);
+                    hourlyChart.update('none');
+                }
+
+                // Son girişler listesini güncelle
+                const listEl = document.getElementById('recent-entrances-list');
+                if (data.recent && data.recent.length > 0) {
+                    listEl.innerHTML = data.recent.map(item => {
+                        const isChild = item.person_type === 'child';
+                        const badgeColor = isChild ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+                        const label = isChild ? 'Çocuk' : 'Yetişkin';
+                        const timeOnly = item.timestamp.split(' ')[1] || item.timestamp;
+                        return `
+                            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950/70 border border-slate-800/80">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${badgeColor}">${label}</span>
+                                    <span class="text-slate-300 font-mono">${timeOnly}</span>
+                                </div>
+                                <span class="font-bold text-slate-200">${item.fee_charged} TL</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (err) {
+                console.error("Geçmiş veri hatası:", err);
+            }
+        }
+
+        // 8 Kamera Kanalı Seçimi
+        function selectChannel(chan) {
+            const ip = document.getElementById('nvr-ip').value.trim() || '192.168.1.64';
+            const user = document.getElementById('nvr-user').value.trim() || 'admin';
+            const pass = document.getElementById('nvr-pass').value.trim() || '12345';
+
+            // Hikvision NVR formatı: Channels/[Kanal]02
+            // Kanal 1 = 102, Kanal 2 = 202, ... Kanal 8 = 802
+            const rtspUrl = `rtsp://${user}:${pass}@${ip}:554/Streaming/Channels/${chan}02`;
+            document.getElementById('set-camera-source').value = rtspUrl;
+
+            // Buton aktiflik görünümünü güncelle
+            document.querySelectorAll('.btn-channel').forEach(b => {
+                b.classList.remove('bg-emerald-600', 'ring-2', 'ring-emerald-400');
+                b.classList.add('bg-slate-800');
+            });
+            const activeBtn = document.getElementById(`btn-chan-${chan}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-slate-800');
+                activeBtn.classList.add('bg-emerald-600', 'ring-2', 'ring-emerald-400');
+            }
+        }
+
+        // Ayarları Sunucudan Getir
+        async function loadSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                currentConfig = await res.json();
+
+                const camSrc = currentConfig.camera_source || "0";
+                document.getElementById('set-camera-source').value = camSrc;
+
+                // Eğer RTSP Hikvision NVR linkiyse kutucukları otomatik doldur
+                // Örnek: rtsp://admin:pass@192.168.1.64:554/Streaming/Channels/302
+                const match = camSrc.match(/rtsp:\/\/([^:]+):([^@]+)@([^:]+):554\/Streaming\/Channels\/(\d)0[12]/);
+                if (match) {
+                    document.getElementById('nvr-user').value = match[1];
+                    document.getElementById('nvr-pass').value = match[2];
+                    document.getElementById('nvr-ip').value = match[3];
+                    const chan = match[4];
+                    const activeBtn = document.getElementById(`btn-chan-${chan}`);
+                    if (activeBtn) {
+                        activeBtn.classList.remove('bg-slate-800');
+                        activeBtn.classList.add('bg-emerald-600', 'ring-2', 'ring-emerald-400');
+                    }
+                }
+
+                document.getElementById('input-quick-price').value = currentConfig.price_per_adult || 20;
+                document.getElementById('set-price-adult').value = currentConfig.price_per_adult || 20;
+                document.getElementById('set-price-child').value = currentConfig.price_per_child || 0;
+                document.getElementById('set-charge-children').checked = !!currentConfig.charge_children;
+                document.getElementById('set-height-threshold').value = currentConfig.child_height_threshold || 160;
+                document.getElementById('val-height-threshold').innerText = (currentConfig.child_height_threshold || 160) + ' px';
+                document.getElementById('set-direction').value = currentConfig.in_direction || 'down';
+                document.getElementById('lbl-direction').innerText = (currentConfig.in_direction || 'down').toUpperCase();
+
+                if (currentConfig.google_sync) {
+                    document.getElementById('set-google-webhook').value = currentConfig.google_sync.webhook_url || '';
+                    document.getElementById('set-google-enabled').checked = !!currentConfig.google_sync.enabled;
+                }
+            } catch (err) {
+                console.error("Ayar yükleme hatası:", err);
+            }
+        }
+
+        // Hızlı Fiyat Güncelleme (Ana Kart Üzerinden)
+        async function updateQuickPrice(val) {
+            const price = parseFloat(val);
+            if (isNaN(price) || price < 0) return;
+            currentConfig.price_per_adult = price;
+            await saveConfigToServer(currentConfig);
+            fetchStats();
+        }
+
+        // Ayarları Kaydet
+        async function saveSettings(e) {
+            e.preventDefault();
+            currentConfig.camera_source = document.getElementById('set-camera-source').value.trim();
+            currentConfig.price_per_adult = parseFloat(document.getElementById('set-price-adult').value);
+            currentConfig.price_per_child = parseFloat(document.getElementById('set-price-child').value);
+            currentConfig.charge_children = document.getElementById('set-charge-children').checked;
+            currentConfig.child_height_threshold = parseInt(document.getElementById('set-height-threshold').value);
+            currentConfig.in_direction = document.getElementById('set-direction').value;
+            document.getElementById('lbl-direction').innerText = currentConfig.in_direction.toUpperCase();
+
+            await saveConfigToServer(currentConfig);
+            closeSettingsModal();
+            fetchStats();
+        }
+
+        // Google Ayarlarını Kaydet
+        async function saveGoogleSettings() {
+            if (!currentConfig.google_sync) currentConfig.google_sync = {};
+            currentConfig.google_sync.webhook_url = document.getElementById('set-google-webhook').value.trim();
+            currentConfig.google_sync.enabled = document.getElementById('set-google-enabled').checked;
+
+            await saveConfigToServer(currentConfig);
+            closeGoogleModal();
+            fetchStats();
+        }
+
+        async function testGoogleSync() {
+            try {
+                const res = await fetch('/api/test_google_sync', { method: 'POST' });
+                const data = await res.json();
+                alert(data.message || "Test tamamlandı!");
+            } catch (err) {
+                alert("Hata: " + err);
+            }
+        }
+
+        async function saveConfigToServer(cfg) {
+            try {
+                await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cfg)
+                });
+            } catch (err) {
+                alert("Ayar kaydedilirken hata: " + err);
+            }
+        }
+
+        // Günü Sıfırla
+        async function confirmReset() {
+            if (confirm("Bugünün tuvalet giriş sayaçlarını sıfırlamak istediğinize emin misiniz?")) {
+                await fetch('/api/reset', { method: 'POST' });
+                fetchStats();
+                fetchHistory();
+            }
+        }
+
+        // ÇİZGİ ÇİZME MODU (Tripwire Setup)
+        function toggleLineDrawing() {
+            isDrawingMode = !isDrawingMode;
+            const canvas = document.getElementById('drawing-canvas');
+            const banner = document.getElementById('draw-helper-banner');
+            const btnText = document.getElementById('txt-draw-line');
+
+            if (isDrawingMode) {
+                lineClicks = [];
+                canvas.classList.remove('pointer-events-none');
+                banner.classList.remove('hidden');
+                btnText.innerText = 'Çizimi İptal Et';
+                canvas.addEventListener('click', handleCanvasClick);
+            } else {
+                canvas.classList.add('pointer-events-none');
+                banner.classList.add('hidden');
+                btnText.innerText = 'Kapı Çizgisini Düzenle';
+                canvas.removeEventListener('click', handleCanvasClick);
+            }
+        }
+
+        async function handleCanvasClick(e) {
+            const canvas = document.getElementById('drawing-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width;
+            const y = (e.clientY - rect.top) / rect.height;
+
+            lineClicks.push({ x, y });
+
+            if (lineClicks.length === 2) {
+                currentConfig.line_coords = {
+                    x1: Math.min(Math.max(lineClicks[0].x, 0), 1),
+                    y1: Math.min(Math.max(lineClicks[0].y, 0), 1),
+                    x2: Math.min(Math.max(lineClicks[1].x, 0), 1),
+                    y2: Math.min(Math.max(lineClicks[1].y, 0), 1)
+                };
+
+                await saveConfigToServer(currentConfig);
+                toggleLineDrawing();
+                alert("Kapı geçiş çizgisi başarıyla güncellendi!");
+            }
+        }
+
+        // Mobil URL Çekme
+        async function fetchMobileUrl() {
+            try {
+                const res = await fetch('/api/mobile_url');
+                const data = await res.json();
+                document.getElementById('txt-mobile-url').innerText = data.url;
+            } catch (err) {}
+        }
+
+        // Modal Yönetimi
+        function openQrModal() { document.getElementById('modal-qr').classList.remove('hidden'); }
+        function closeQrModal() { document.getElementById('modal-qr').classList.add('hidden'); }
+        function openSettingsModal() { document.getElementById('modal-settings').classList.remove('hidden'); }
+        function closeSettingsModal() { document.getElementById('modal-settings').classList.add('hidden'); }
+        function openGoogleModal() { document.getElementById('modal-google').classList.remove('hidden'); }
+        function closeGoogleModal() { document.getElementById('modal-google').classList.add('hidden'); }
+    </script>
+</body>
+</html>
