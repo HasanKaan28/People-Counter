@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -12,8 +13,10 @@ namespace PeopleCounter
     {
         private static Mutex appMutex = null;
         private static Process serverProcess = null;
+        private static StreamWriter logWriter = null;
+        private static readonly object logLock = new object();
         private static NotifyIcon trayIcon = null;
-        private static string appUrl = "http://localhost:8000";
+        private static string appUrl = "http://127.0.0.1:8000";
         private static string baseDir = "";
 
         [STAThread]
@@ -21,12 +24,21 @@ namespace PeopleCounter
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
 
             baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
             // 1. Single-Instance Mutex: prevents duplicate instances & port conflicts
-            bool createdNew;
-            appMutex = new Mutex(true, "Global\\PeopleCounter_AI_Vision_App_Mutex_v1", out createdNew);
+            bool createdNew = true;
+            try
+            {
+                appMutex = new Mutex(true, "Local\\PeopleCounter_AI_Vision_App_Mutex_v1", out createdNew);
+            }
+            catch
+            {
+                createdNew = true;
+            }
+
             if (!createdNew)
             {
                 // App is already running in background! Just focus/launch the dedicated window
@@ -209,11 +221,29 @@ namespace PeopleCounter
                 serverProcess.StartInfo.RedirectStandardError = true;
 
                 string logPath = Path.Combine(workingDir, "server.log");
-                StreamWriter sw = new StreamWriter(logPath, false);
-                sw.AutoFlush = true;
+                FileStream fs = new FileStream(logPath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
+                logWriter = new StreamWriter(fs, System.Text.Encoding.UTF8) { AutoFlush = true };
 
-                serverProcess.OutputDataReceived += (s, ev) => { if (ev.Data != null) sw.WriteLine(ev.Data); };
-                serverProcess.ErrorDataReceived += (s, ev) => { if (ev.Data != null) sw.WriteLine(ev.Data); };
+                serverProcess.OutputDataReceived += (s, ev) =>
+                {
+                    if (ev.Data != null && logWriter != null)
+                    {
+                        lock (logLock)
+                        {
+                            try { logWriter.WriteLine(ev.Data); } catch { }
+                        }
+                    }
+                };
+                serverProcess.ErrorDataReceived += (s, ev) =>
+                {
+                    if (ev.Data != null && logWriter != null)
+                    {
+                        lock (logLock)
+                        {
+                            try { logWriter.WriteLine(ev.Data); } catch { }
+                        }
+                    }
+                };
 
                 serverProcess.Start();
                 serverProcess.BeginOutputReadLine();
@@ -221,7 +251,7 @@ namespace PeopleCounter
             }
             catch (Exception ex)
             {
-                File.WriteAllText(Path.Combine(workingDir, "server_error.log"), ex.ToString());
+                try { File.WriteAllText(Path.Combine(workingDir, "server_error.log"), ex.ToString()); } catch { }
             }
         }
 
@@ -229,6 +259,11 @@ namespace PeopleCounter
         {
             try
             {
+                if (logWriter != null)
+                {
+                    try { logWriter.Flush(); logWriter.Close(); } catch { }
+                    logWriter = null;
+                }
                 if (serverProcess != null && !serverProcess.HasExited)
                 {
                     Process.Start(new ProcessStartInfo("taskkill", string.Format("/F /T /PID {0}", serverProcess.Id))
@@ -246,10 +281,31 @@ namespace PeopleCounter
             try
             {
                 HttpWebRequest req = (HttpWebRequest)WebRequest.Create(appUrl + "/api/stats");
-                req.Timeout = 500;
+                req.Proxy = null; // CRITICAL: Bypasses 2000ms Windows WPAD proxy resolution
+                req.Timeout = 1200;
+                req.ReadWriteTimeout = 1200;
                 using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
                 {
                     if (resp.StatusCode == HttpStatusCode.OK) return true;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        static bool IsPortListening(int port)
+        {
+            try
+            {
+                using (TcpClient client = new TcpClient())
+                {
+                    var res = client.BeginConnect("127.0.0.1", port, null, null);
+                    bool ok = res.AsyncWaitHandle.WaitOne(200);
+                    if (ok && client.Connected)
+                    {
+                        client.EndConnect(res);
+                        return true;
+                    }
                 }
             }
             catch { }
@@ -284,19 +340,20 @@ namespace PeopleCounter
                     return false;
                 }
 
-                if (IsServerResponding())
+                // Fast check: is port listening and responding?
+                if (IsPortListening(8000) && IsServerResponding())
                 {
                     return true;
                 }
 
-                // Pump Windows messages continuously for 200ms in 20ms slices to prevent UI freeze
+                // Pump Windows messages continuously for 150ms in 25ms slices to prevent UI freeze
                 DateTime slice = DateTime.Now;
-                while ((DateTime.Now - slice).TotalMilliseconds < 200)
+                while ((DateTime.Now - slice).TotalMilliseconds < 150)
                 {
                     Application.DoEvents();
-                    Thread.Sleep(20);
+                    Thread.Sleep(25);
                 }
-                elapsedMs += 200;
+                elapsedMs += 150;
 
                 if (splash != null)
                 {
