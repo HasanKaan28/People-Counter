@@ -42,18 +42,16 @@ The web interface defaults to **English** and includes an instant **Language Swi
 
 ## 🚀 Quick Start
 
-### 1. Windows (1-Click Automated Setup - Recommended)
+### 1. Windows (Direct Executable & 1-Click Launch)
 1. Clone or download this repository:
    ```bash
    git clone https://github.com/HasanKaan28/kamera-kisi-sayaci.git
    cd kamera-kisi-sayaci
    ```
-2. Double-click **`Setup.bat`** (or `Install.bat`).
-   - Automatically detects Python and dependencies.
-   - Configures the isolated virtual environment (`.venv`).
-   - Installs all AI packages (`requirements.txt`).
-   - Creates a **"People Counter"** shortcut on your Desktop.
-3. To start, double-click your Desktop shortcut or **`Start.bat`**!
+2. Simply double-click **`PeopleCounter.exe`** (or your **"People Counter"** Desktop shortcut):
+   - Automatically initializes the environment and dependencies on first run.
+   - Starts the AI computer vision server and opens your browser at `http://localhost:8000`.
+   - Alternatively, you can use **`Setup.bat`** and **`Start.bat`**.
 
 ---
 

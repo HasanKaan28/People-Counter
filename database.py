@@ -2,7 +2,7 @@ import sqlite3
 import os
 from datetime import datetime, date
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tuvalet_sayac.db")
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "people_counter.db")
 
 def get_db():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
@@ -10,24 +10,24 @@ def get_db():
     return conn
 
 def init_db():
-    """Veri tabanı tablolarını oluşturur."""
+    """Initializes the database tables."""
     conn = get_db()
     cursor = conn.cursor()
 
-    # Bireysel giriş hareketleri tablosu
+    # Individual entrance event logs
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS entrances (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             date_str TEXT NOT NULL,
             hour_int INTEGER NOT NULL,
-            person_type TEXT NOT NULL,  -- 'adult' veya 'child'
+            person_type TEXT NOT NULL,  -- 'adult' or 'child'
             fee_charged REAL NOT NULL,
             track_id INTEGER
         )
     """)
 
-    # Günlük özetler tablosu
+    # Daily aggregated summaries
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS daily_summaries (
             date_str TEXT PRIMARY KEY,
@@ -43,7 +43,7 @@ def init_db():
     conn.close()
 
 def record_entrance(person_type="adult", fee=20.0, track_id=None):
-    """Yeni bir tuvalet girişini kaydeder ve günlük özeti günceller."""
+    """Records a new entrance event and updates daily summaries."""
     now = datetime.now()
     date_str = now.strftime("%Y-%m-%d")
     hour_int = now.hour
@@ -53,13 +53,11 @@ def record_entrance(person_type="adult", fee=20.0, track_id=None):
     cursor = conn.cursor()
 
     try:
-        # Hareketi ekle
         cursor.execute("""
             INSERT INTO entrances (timestamp, date_str, hour_int, person_type, fee_charged, track_id)
             VALUES (?, ?, ?, ?, ?, ?)
         """, (timestamp_str, date_str, hour_int, person_type, fee, track_id))
 
-        # Günlük özeti güncelle (Upsert)
         is_adult = 1 if person_type == "adult" else 0
         is_child = 1 if person_type == "child" else 0
 
@@ -79,7 +77,7 @@ def record_entrance(person_type="adult", fee=20.0, track_id=None):
         conn.close()
 
 def get_today_stats(fee_per_adult=20.0, fee_per_child=0.0, charge_children=False):
-    """Bugünün canlı istatistiklerini getirir."""
+    """Retrieves live real-time metrics for the current date."""
     today_str = date.today().strftime("%Y-%m-%d")
     conn = get_db()
     cursor = conn.cursor()
@@ -100,7 +98,7 @@ def get_today_stats(fee_per_adult=20.0, fee_per_child=0.0, charge_children=False
         child_count = row["child_count"]
         total_count = row["total_count"]
 
-        # Anlık ayardaki ücrete göre hesaplanan dinamik ciro
+        # Dynamically calculate revenue based on active rate configuration
         calculated_revenue = (adult_count * fee_per_adult)
         if charge_children:
             calculated_revenue += (child_count * fee_per_child)
@@ -119,7 +117,7 @@ def get_today_stats(fee_per_adult=20.0, fee_per_child=0.0, charge_children=False
         conn.close()
 
 def get_hourly_breakdown(date_str=None):
-    """Günün saatlik giriş yoğunluğu dağılımını verir (08:00 - 21:00 vb.)."""
+    """Returns hourly entrance distribution."""
     if not date_str:
         date_str = date.today().strftime("%Y-%m-%d")
 
@@ -139,7 +137,6 @@ def get_hourly_breakdown(date_str=None):
         """, (date_str,))
         rows = cursor.fetchall()
 
-        # 24 saati doldur
         hourly_data = {h: {"hour": f"{h:02d}:00", "total": 0, "adults": 0, "children": 0} for h in range(24)}
         for r in rows:
             h = r["hour_int"]
@@ -155,7 +152,7 @@ def get_hourly_breakdown(date_str=None):
         conn.close()
 
 def get_recent_entrances(limit=20):
-    """Son girişleri listeler."""
+    """Lists the most recent entrance events."""
     conn = get_db()
     cursor = conn.cursor()
     try:
@@ -170,7 +167,7 @@ def get_recent_entrances(limit=20):
         conn.close()
 
 def get_daily_history(limit=30):
-    """Geçmiş günlerin özetlerini getirir."""
+    """Retrieves summaries for previous dates."""
     conn = get_db()
     cursor = conn.cursor()
     try:
@@ -185,7 +182,7 @@ def get_daily_history(limit=30):
         conn.close()
 
 def reset_today_data():
-    """Bugünün sayaçlarını sıfırlar (test veya vardiya değişimi için)."""
+    """Resets counter metrics for the current date."""
     today_str = date.today().strftime("%Y-%m-%d")
     conn = get_db()
     cursor = conn.cursor()
@@ -196,5 +193,5 @@ def reset_today_data():
     finally:
         conn.close()
 
-# Başlatıldığında tabloları kur
+# Initialize tables upon module load
 init_db()

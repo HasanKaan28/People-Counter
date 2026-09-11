@@ -18,7 +18,7 @@
         "webhook_url": "",
         "sync_interval_seconds": 30,
         "local_csv_backup": true,
-        "backup_folder": "gunluk_raporlar"
+        "backup_folder": "daily_reports"
     },
     "operating_hours": {
         "enabled": false,

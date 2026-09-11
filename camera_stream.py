@@ -6,8 +6,8 @@ import numpy as np
 
 class HikvisionStream:
     """
-    Hikvision ve IP Kameralar icin 13 saat kesintisiz ve sifir gecikmeli (zero-lag)
-    calisan guvenilir RTSP Akis Yoneticisi.
+    High-performance RTSP / USB webcam video capture manager
+    engineered for zero-latency 24/7 continuous operation.
     """
     def __init__(self, source="0", rtsp_transport="tcp"):
         self.source = source
@@ -19,15 +19,15 @@ class HikvisionStream:
         self.last_frame_time = 0
         self.fps = 0.0
         self.is_connected = False
-        self.status_message = "Hazirlaniyor..."
+        self.status_message = "Initializing..."
         self.worker_thread = None
 
-        # FFmpeg TCP ayari (RTSP paket kayiplarini onlemek icin)
+        # Force TCP transport for RTSP streams to eliminate packet loss artifacts
         if str(self.source).startswith("rtsp"):
             os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = f"rtsp_transport;{self.rtsp_transport}"
 
     def start(self):
-        """Akis is parcacigini baslatir."""
+        """Starts background frame ingestion worker thread."""
         if self.running:
             return
         self.running = True
@@ -35,7 +35,7 @@ class HikvisionStream:
         self.worker_thread.start()
 
     def update_source(self, new_source):
-        """Kamera kaynagini dinamik olarak degistirir."""
+        """Dynamically updates the video source."""
         with self.lock:
             self.source = new_source
             if str(self.source).startswith("rtsp"):
@@ -44,12 +44,11 @@ class HikvisionStream:
                 self.cap.release()
                 self.cap = None
             self.is_connected = False
-            self.status_message = "Kamera kaynagi guncellendi, baglaniyor..."
+            self.status_message = "Video source updated, connecting..."
 
     def _open_capture(self):
-        """Kamera baglantisini acar."""
+        """Opens camera connection."""
         try:
-            # Eger sayisal bir degerse (0, 1 gibi webcam indexi) int yap
             src = self.source
             if isinstance(src, str) and src.strip().isdigit():
                 src = int(src.strip())
@@ -60,49 +59,46 @@ class HikvisionStream:
             else:
                 cap = cv2.VideoCapture(src)
 
-            # Donanim onbellegini 1 kareye dusur (gecikmeyi onler)
+            # Reduce internal hardware buffer to 1 frame to eliminate latency
             cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
             if cap.isOpened():
                 ret, frame = cap.read()
                 if ret and frame is not None:
                     self.is_connected = True
-                    self.status_message = "Kamera Bagli (Canli)"
+                    self.status_message = "Camera Connected (Live)"
                     return cap
             
             if cap:
                 cap.release()
             return None
         except Exception as e:
-            self.status_message = f"Baglanti hatasi: {str(e)}"
+            self.status_message = f"Connection error: {str(e)}"
             return None
 
     def _capture_loop(self):
-        """Sifir gecikmeli surekli kare okuma dongusu."""
+        """Continuous frame grab loop."""
         frame_counter = 0
         fps_timer = time.time()
 
         while self.running:
             if self.cap is None or not self.cap.isOpened() or not self.is_connected:
-                self.status_message = f"Baglanti kuruluyor: {self.source}"
+                self.status_message = f"Connecting: {self.source}"
                 self.cap = self._open_capture()
                 if not self.is_connected:
-                    time.sleep(2)  # Yeniden denemeden once bekle
+                    time.sleep(2)
                     continue
 
-            # Kare yakala
             grabbed = self.cap.grab()
             if not grabbed:
-                # Kare yakalanamadi (kamera koptu veya ag kesildi)
                 self.is_connected = False
-                self.status_message = "Baglanti koptu, yeniden baglaniyor..."
+                self.status_message = "Stream interrupted, reconnecting..."
                 if self.cap:
                     self.cap.release()
                     self.cap = None
                 time.sleep(1)
                 continue
 
-            # Sadece en son kareyi bellege al
             ret, frame = self.cap.retrieve()
             if ret and frame is not None:
                 now = time.time()
@@ -110,9 +106,8 @@ class HikvisionStream:
                     self.latest_frame = frame
                     self.last_frame_time = now
                     self.is_connected = True
-                    self.status_message = "Canli Yayin Aktif"
+                    self.status_message = "Live Stream Active"
 
-                # FPS hesabi
                 frame_counter += 1
                 if now - fps_timer >= 1.0:
                     self.fps = frame_counter / (now - fps_timer)
@@ -123,36 +118,33 @@ class HikvisionStream:
                 time.sleep(0.5)
 
     def get_frame(self):
-        """En son guncel kareyi dondurur."""
+        """Returns the most recent frame."""
         with self.lock:
             if self.latest_frame is not None and (time.time() - self.last_frame_time < 3.0):
                 return self.latest_frame.copy(), True
             else:
-                # Baglanti yoksa veya kare gelmiyorsa bilgi ekrani olustur
                 return self._create_placeholder_frame(), False
 
     def _create_placeholder_frame(self):
-        """Kamera bagli degilken bilgi gosteren resim olusturur."""
+        """Generates a placeholder image when camera is offline."""
         frame = np.zeros((480, 640, 3), dtype=np.uint8)
-        # Koyu gri arka plan
         frame[:] = (30, 30, 35)
 
-        # Bilgilendirme yazilari
-        cv2.putText(frame, "KAMERA BAGLANTISI BEKLENIYOR", (70, 200),
+        cv2.putText(frame, "AWAITING CAMERA STREAM", (100, 200),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 215, 255), 2, cv2.LINE_AA)
         
-        info = f"Kaynak: {str(self.source)}"
+        info = f"Source: {str(self.source)}"
         if len(info) > 45:
             info = info[:45] + "..."
-        cv2.putText(frame, info, (70, 245),
+        cv2.putText(frame, info, (100, 245),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 200), 1, cv2.LINE_AA)
 
-        status = f"Durum: {self.status_message}"
-        cv2.putText(frame, status, (70, 280),
+        status = f"Status: {self.status_message}"
+        cv2.putText(frame, status, (100, 280),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, (100, 180, 255), 1, cv2.LINE_AA)
 
-        tip = "Hikvision RTSP URL'sini Ayarlar bolumunden girebilirsiniz."
-        cv2.putText(frame, tip, (70, 330),
+        tip = "Configure RTSP connection in Settings."
+        cv2.putText(frame, tip, (100, 330),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (140, 140, 140), 1, cv2.LINE_AA)
 
         return frame

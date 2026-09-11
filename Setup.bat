@@ -105,7 +105,7 @@ echo.
 :: STEP 4: Desktop Shortcut
 :: ----------------------------------------------------------------------
 echo [4/4] Creating Desktop shortcut...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws = New-Object -ComObject WScript.Shell; $desktop = [Environment]::GetFolderPath('Desktop'); $s = $ws.CreateShortcut((Join-Path $desktop 'People Counter.lnk')); $s.TargetPath = (Join-Path '%~dp0' 'Start.bat'); $s.WorkingDirectory = '%~dp0'; $s.Description = 'AI Camera People Counter & Revenue Tracker'; $s.IconLocation = 'shell32.dll,19'; $s.Save(); try { $ps = $ws.CreateShortcut('C:\Users\Public\Desktop\People Counter.lnk'); $ps.TargetPath = (Join-Path '%~dp0' 'Start.bat'); $ps.WorkingDirectory = '%~dp0'; $ps.IconLocation = 'shell32.dll,19'; $ps.Save() } catch {}" >nul 2>&1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws = New-Object -ComObject WScript.Shell; $desktop = [Environment]::GetFolderPath('Desktop'); $s = $ws.CreateShortcut((Join-Path $desktop 'People Counter.lnk')); $s.TargetPath = (Join-Path '%~dp0' 'PeopleCounter.exe'); $s.WorkingDirectory = '%~dp0'; $s.Description = 'AI Camera People Counter & Revenue Tracker'; $s.IconLocation = 'shell32.dll,19'; $s.Save(); try { $ps = $ws.CreateShortcut('C:\Users\Public\Desktop\People Counter.lnk'); $ps.TargetPath = (Join-Path '%~dp0' 'PeopleCounter.exe'); $ps.WorkingDirectory = '%~dp0'; $ps.IconLocation = 'shell32.dll,19'; $ps.Save() } catch {}" >nul 2>&1
 
 echo.
 echo =====================================================================
@@ -113,10 +113,10 @@ echo                SETUP COMPLETED SUCCESSFULLY!
 echo =====================================================================
 echo.
 echo You can now run the application anytime from your Desktop shortcut
-echo 'People Counter' or by clicking 'Start.bat'.
+echo 'People Counter' or by double-clicking 'PeopleCounter.exe'.
 echo.
 set /p START_NOW="Would you like to start the application now? (Y/N): "
 if /i "!START_NOW!"=="Y" (
-    start "" "%~dp0Start.bat"
+    start "" "%~dp0PeopleCounter.exe"
 )
 exit /b 0

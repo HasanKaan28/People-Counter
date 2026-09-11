@@ -18,29 +18,29 @@ from camera_stream import HikvisionStream
 from tracker import PersonTracker
 from google_sync import GoogleSyncManager
 
-# Dizin yolları
+# Directory paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
 app = FastAPI(title="AI Camera People Counter & Revenue Tracker")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
-# 1. Yapılandırma ve Servisleri Başlat
+# 1. Load Configuration & Initialize Services
 config = load_config()
 
-# Google Senkronizasyonu
+# Cloud Synchronization Manager
 google_sync = GoogleSyncManager(config)
 
-# Kamera Akışı (Hikvision RTSP veya Yerel Kamera)
+# Camera Video Stream
 camera = HikvisionStream(
     source=config.get("camera_source", "0"),
     rtsp_transport=config.get("rtsp_transport", "tcp")
 )
 camera.start()
 
-# Kişi Takip ve Çizgi Motoru (Callback ile)
+# Person Tracking Engine with Crossing Callback
 def on_entrance_event(person_type, track_id):
-    """Biri kapı çizgisini içeri doğru geçtiğinde tetiklenir."""
+    """Triggered upon verified tripwire crossing in the entrance direction."""
     cfg = load_config()
     is_child = (person_type == "child")
     
@@ -49,10 +49,10 @@ def on_entrance_event(person_type, track_id):
     else:
         fee = cfg.get("price_per_adult", 20.0)
 
-    # Veri tabanına kaydet
+    # Persist to database
     db.record_entrance(person_type=person_type, fee=fee, track_id=track_id)
 
-    # Güncel istatistikleri çek
+    # Fetch updated daily metrics
     stats = db.get_today_stats(
         fee_per_adult=cfg.get("price_per_adult", 20.0),
         fee_per_child=cfg.get("price_per_child", 0.0),
@@ -60,12 +60,12 @@ def on_entrance_event(person_type, track_id):
     )
     tracker.set_counts(stats)
 
-    # Google Sheets / Drive senkronizasyonunu anında tetikle
+    # Trigger immediate cloud sync
     google_sync.push_update(stats, is_instant_event=True)
 
 tracker = PersonTracker(config, on_entrance_callback=on_entrance_event)
 
-# Başlangıç istatistiklerini tracker'a yükle
+# Initialize tracker with existing daily stats
 initial_stats = db.get_today_stats(
     fee_per_adult=config.get("price_per_adult", 20.0),
     fee_per_child=config.get("price_per_child", 0.0),
@@ -74,7 +74,7 @@ initial_stats = db.get_today_stats(
 tracker.set_counts(initial_stats)
 
 def get_local_ip():
-    """Bilgisayarın yerel ağ (Wi-Fi) IP adresini bulur."""
+    """Resolves the local network (Wi-Fi) IP address of the machine."""
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
@@ -84,7 +84,7 @@ def get_local_ip():
     except Exception:
         return "127.0.0.1"
 
-# Periyodik Google Senkronizasyon Döngüsü (Arka Planda)
+# Periodic Cloud Sync Loop (Background Thread)
 def periodic_sync_loop():
     while True:
         try:
@@ -96,7 +96,7 @@ def periodic_sync_loop():
             )
             google_sync.push_update(stats, is_instant_event=False)
         except Exception as e:
-            print(f"Periyodik senkronizasyon hatası: {e}")
+            print(f"Periodic sync error: {e}")
         time.sleep(15)
 
 sync_thread = threading.Thread(target=periodic_sync_loop, daemon=True)
@@ -106,36 +106,35 @@ sync_thread.start()
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    """Ana kontrol paneli arayüzü."""
+    """Main dashboard interface."""
     return templates.TemplateResponse(request=request, name="index.html")
 
 def generate_video_frames():
-    """Kamera karesini alır, yapay zekadan geçirir ve MJPEG olarak yayınlar."""
+    """Captures camera frame, applies AI tracking, and yields MJPEG stream."""
     while True:
         frame, is_live = camera.get_frame()
         if frame is not None:
             if is_live:
-                # Yapay zeka ile insanları tespit et, takip et ve çizgiyi kontrol et
                 annotated_frame, _ = tracker.process_frame(frame)
             else:
                 annotated_frame = frame
 
-            # JPEG formatına dönüştür (Kalite 75: Düşük bant genişliği, yüksek hız)
+            # Encode as JPEG (Quality 75 for optimal responsiveness and bandwidth)
             ret, buffer = cv2.imencode('.jpg', annotated_frame, [cv2.IMWRITE_JPEG_QUALITY, 75])
             if ret:
                 frame_bytes = buffer.tobytes()
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-        time.sleep(0.033)  # ~30 FPS sınırı
+        time.sleep(0.033)  # ~30 FPS throttle
 
 @app.get("/video_feed")
 def video_feed():
-    """Canlı kamera akışı uç noktası (Web ve Telefon için)."""
+    """Live MJPEG video feed endpoint."""
     return StreamingResponse(generate_video_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 @app.get("/api/stats")
 async def get_stats():
-    """Canlı sayaç ve durum verileri."""
+    """Live metric counters and system status."""
     cfg = load_config()
     stats = db.get_today_stats(
         fee_per_adult=cfg.get("price_per_adult", 20.0),
@@ -148,19 +147,19 @@ async def get_stats():
 
 @app.get("/api/history")
 async def get_history():
-    """Saatlik dağılım ve son girişler."""
+    """Hourly traffic breakdown and recent events."""
     hourly = db.get_hourly_breakdown()
     recent = db.get_recent_entrances(limit=15)
     return JSONResponse({"hourly": hourly, "recent": recent})
 
 @app.get("/api/settings")
 async def get_settings():
-    """Mevcut ayarları döndürür."""
+    """Returns active configuration."""
     return JSONResponse(load_config())
 
 @app.post("/api/settings")
 async def update_settings(request: Request):
-    """Ayarları günceller."""
+    """Updates system configuration."""
     data = await request.json()
     cfg = load_config()
     
@@ -168,14 +167,13 @@ async def update_settings(request: Request):
     cfg.update(data)
     save_config(cfg)
 
-    # Bileşenleri güncelle
+    # Update components dynamically
     if cfg.get("camera_source") != old_source:
         camera.update_source(cfg.get("camera_source"))
 
     tracker.update_config(cfg)
     google_sync.update_config(cfg)
 
-    # Güncel fiyatlarla tracker sayaçlarını senkronize et
     stats = db.get_today_stats(
         fee_per_adult=cfg.get("price_per_adult", 20.0),
         fee_per_child=cfg.get("price_per_child", 0.0),
@@ -183,11 +181,11 @@ async def update_settings(request: Request):
     )
     tracker.set_counts(stats)
 
-    return JSONResponse({"success": True, "message": "Ayarlar kaydedildi."})
+    return JSONResponse({"success": True, "message": "Settings saved successfully."})
 
 @app.post("/api/reset")
 async def reset_counts():
-    """Bugünün sayaçlarını sıfırlar."""
+    """Resets counters for the current day."""
     db.reset_today_data()
     cfg = load_config()
     stats = db.get_today_stats(
@@ -198,17 +196,17 @@ async def reset_counts():
     tracker.set_counts(stats)
     tracker.counted_in_ids.clear()
     tracker.counted_out_ids.clear()
-    return JSONResponse({"success": True, "message": "Bugünün verileri sıfırlandı."})
+    return JSONResponse({"success": True, "message": "Daily metrics reset successfully."})
 
 @app.get("/api/mobile_url")
 async def get_mobile_url():
-    """Telefon ile bağlanılacak yerel URL."""
+    """Local network URL for mobile browser access."""
     ip = get_local_ip()
     return JSONResponse({"url": f"http://{ip}:8000"})
 
 @app.get("/api/qr")
 async def get_qr_image():
-    """Telefon kamerasından okutulacak QR kod resmi üretir."""
+    """Generates QR code image for instant smartphone connectivity."""
     ip = get_local_ip()
     url = f"http://{ip}:8000"
     
@@ -228,7 +226,7 @@ async def get_qr_image():
 
 @app.post("/api/test_google_sync")
 async def test_google_sync():
-    """Google Sheets webhook'una anında test satırı gönderir."""
+    """Sends test record to Google Sheets webhook."""
     cfg = load_config()
     stats = db.get_today_stats(
         fee_per_adult=cfg.get("price_per_adult", 20.0),
@@ -238,14 +236,14 @@ async def test_google_sync():
     google_sync.push_update(stats, is_instant_event=True)
     time.sleep(1.0)
     status = google_sync.get_sync_status()
-    return JSONResponse({"message": f"Test sonucu: {status.get('status')}"})
+    return JSONResponse({"message": f"Sync status: {status.get('status')}"})
 
 if __name__ == "__main__":
     import uvicorn
     local_ip = get_local_ip()
-    print("=" * 60)
-    print(" KURŞUNLU PİKNİK ALANI - TUVALET TAKİP SİSTEMİ BAŞLATILDI")
-    print(f" Bilgisayar Ekranı: http://localhost:8000")
-    print(f" Cep Telefonu İçin: http://{local_ip}:8000")
-    print("=" * 60)
+    print("=" * 65)
+    print(" AI CAMERA PEOPLE COUNTER & REVENUE TRACKER")
+    print(f" Web Dashboard: http://localhost:8000")
+    print(f" Mobile View:   http://{local_ip}:8000")
+    print("=" * 65)
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

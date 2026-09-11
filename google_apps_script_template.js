@@ -1,21 +1,21 @@
 /**
  * ==============================================================================
- * KURŞUNLU PİKNİK ALANI - GOOGLE E-TABLOLAR CANLI SENKRONİZASYON KODU
+ * AI CAMERA PEOPLE COUNTER - GOOGLE SHEETS LIVE SYNC SCRIPT
  * ==============================================================================
  * 
- * BU KODU NASIL KURACAKSINIZ? (Yalnızca 1 Dakika Sürer):
+ * HOW TO SETUP (Takes only 1 minute):
  * 
- * 1. Google Drive'ınızı açın (drive.google.com) ve yeni bir Google E-Tablo (Google Sheets) oluşturun.
- * 2. Tablonun üst menüsünden "Uzantılar" (Extensions) > "Apps Script" seçeneğine tıklayın.
- * 3. Açılan kod editöründeki her şeyi silin ve AŞAĞIDAKİ TÜM KODU oraya yapıştırın.
- * 4. Sağ üstteki mavi "Dağıt" (Deploy) > "Yeni Dağıtım" (New deployment) butonuna basın.
- * 5. Sol taraftaki çark simgesinden "Web Uygulaması" (Web app) seçin.
- * 6. "Erişimi olanlar" (Who has access) kısmını "Herkes" (Anyone) olarak seçin ve "Dağıt"a tıklayın.
- * 7. Size verilen "Web Uygulaması URL'sini" kopyalayın ve bizim bilgisayar programındaki 
- *    "Google Drive" ayarları kutusuna yapıştırın.
+ * 1. Open Google Drive (drive.google.com) and create a new Google Sheet.
+ * 2. In the sheet menu, click "Extensions" > "Apps Script".
+ * 3. Delete any existing code and PASTE THIS ENTIRE CODE there.
+ * 4. Click the blue "Deploy" button (top right) > "New deployment".
+ * 5. Select type: "Web app".
+ * 6. Set "Who has access" to "Anyone" and click "Deploy".
+ * 7. Copy the provided "Web app URL" and paste it into the Cloud Sync settings 
+ *    modal in the People Counter application.
  * 
- * TEBRİKLER! Artık tuvalete her giren kişi ve anlık kasa cirosu cep telefonunuzdaki 
- * Google Drive / Google E-Tablolar uygulamasında anında canlı güncellenecektir!
+ * CONGRATULATIONS! Live entrance stats and revenue figures will now sync 
+ * automatically to your Google Spreadsheet in real-time.
  * ==============================================================================
  */
 
@@ -24,30 +24,30 @@ function doPost(e) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var data = JSON.parse(e.postData.contents);
     
-    // Eğer ilk satır başlıkları yoksa otomatik ekle
+    // Auto-create header row if sheet is empty
     if (sheet.getLastRow() === 0) {
       sheet.appendRow([
-        "Tarih", 
-        "Son Güncelleme Saati", 
-        "Yetişkin Sayısı", 
-        "Çocuk Sayısı", 
-        "Toplam Kişi", 
-        "Kişi Başı Ücret (TL)", 
-        "KASADAKİ TOPLAM CİRO (TL)",
-        "Durum / Not"
+        "Date", 
+        "Last Update Time", 
+        "Adults", 
+        "Children", 
+        "Total Entrances", 
+        "Admission Rate", 
+        "TOTAL REVENUE",
+        "Status / Notes"
       ]);
       sheet.getRange("A1:H1").setFontWeight("bold").setBackground("#10b981").setFontColor("#ffffff");
     }
 
-    var todayStr = data.tarih;
-    var timeStr = data.saat;
-    var adults = data.yetiskin_sayisi;
-    var children = data.cocuk_sayisi;
-    var total = data.toplam_giris;
-    var price = data.kisi_basi_ucret;
-    var revenue = data.toplam_ciro_tl;
+    var todayStr = data.date || data.tarih;
+    var timeStr = data.time || data.saat;
+    var adults = data.adults !== undefined ? data.adults : (data.yetiskin_sayisi || 0);
+    var children = data.children !== undefined ? data.children : (data.cocuk_sayisi || 0);
+    var total = data.total_count !== undefined ? data.total_count : (data.toplam_giris || 0);
+    var price = data.rate !== undefined ? data.rate : (data.kisi_basi_ucret || 0);
+    var revenue = data.revenue !== undefined ? data.revenue : (data.toplam_ciro_tl || 0);
 
-    // Tabloda bugünün satırı var mı kontrol et (Aynı güne ait satırı günceller, her güne 1 özet satırı)
+    // Check if row for today already exists (updates existing day row)
     var dataRange = sheet.getDataRange().getValues();
     var rowIndex = -1;
 
@@ -59,16 +59,16 @@ function doPost(e) {
     }
 
     if (rowIndex > 0) {
-      // Bugünün satırını güncelle
+      // Update existing row
       sheet.getRange(rowIndex, 2).setValue(timeStr);
       sheet.getRange(rowIndex, 3).setValue(adults);
       sheet.getRange(rowIndex, 4).setValue(children);
       sheet.getRange(rowIndex, 5).setValue(total);
       sheet.getRange(rowIndex, 6).setValue(price);
       sheet.getRange(rowIndex, 7).setValue(revenue);
-      sheet.getRange(rowIndex, 8).setValue("Canlı Senkronize");
+      sheet.getRange(rowIndex, 8).setValue("Live Synced");
     } else {
-      // Yeni gün için satır ekle
+      // Insert new row for today
       sheet.appendRow([
         todayStr,
         timeStr,
@@ -77,7 +77,7 @@ function doPost(e) {
         total,
         price,
         revenue,
-        "Vardiya Başladı"
+        "Shift Started"
       ]);
     }
 
