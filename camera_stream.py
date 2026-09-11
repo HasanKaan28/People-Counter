@@ -57,7 +57,9 @@ class HikvisionStream:
                 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = f"rtsp_transport;{self.rtsp_transport}"
                 cap = cv2.VideoCapture(src, cv2.CAP_FFMPEG)
             else:
-                cap = cv2.VideoCapture(src)
+                # DirectShow backend on Windows provides immediate opening without MSMF delays
+                backend = cv2.CAP_DSHOW if (os.name == 'nt' and isinstance(src, int)) else cv2.CAP_ANY
+                cap = cv2.VideoCapture(src, backend)
 
             # Reduce internal hardware buffer to 1 frame to eliminate latency
             cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)

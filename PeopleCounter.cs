@@ -87,30 +87,54 @@ namespace PeopleCounter
                 }
             }
 
-            // Ensure verified Desktop Shortcuts with custom icon
+            // Ensure verified Desktop Shortcuts with custom icon (asynchronous if already exists)
             EnsureDesktopShortcuts(Path.Combine(baseDir, "PeopleCounter.exe"), baseDir);
 
-            // 2. Show Sleek Native Splash Screen while Python & YOLO are loading
+            // 2. Show Sleek Native Splash Screen
             using (SplashScreen splash = new SplashScreen())
             {
                 splash.Show();
                 Application.DoEvents();
 
-                // Start Python in background silently (NO black CMD console window!)
-                StartBackgroundServer(venvPython, appPy, baseDir);
-
-                // Wait until server is responding at http://localhost:8000 (poll /api/stats)
-                bool isReady = WaitForServerReady(35);
-
-                splash.Close();
-
-                if (!isReady)
+                // Check if AI service is already running and healthy
+                bool isAlive = IsServerResponding();
+                if (!isAlive)
                 {
-                    MessageBox.Show("AI vision camera service failed to start. Please inspect 'server.log' for details.",
-                                    "Startup Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    StopBackgroundServer();
-                    return;
+                    splash.UpdateStatus("Cleaning up network ports...");
+                    FreePort8000IfOccupied();
+
+                    splash.UpdateStatus("Starting AI computer vision backend...");
+                    StartBackgroundServer(venvPython, appPy, baseDir);
+
+                    // Wait until server is responding at http://localhost:8000 with continuous message pump
+                    bool isReady = WaitForServerReady(splash, 30);
+                    if (!isReady)
+                    {
+                        splash.Close();
+                        string errDetail = "";
+                        try
+                        {
+                            string logPath = Path.Combine(baseDir, "server.log");
+                            if (File.Exists(logPath))
+                            {
+                                string[] lines = File.ReadAllLines(logPath);
+                                int startLine = Math.Max(0, lines.Length - 10);
+                                errDetail = "\n\nLog detail:\n" + string.Join("\n", lines, startLine, lines.Length - startLine);
+                            }
+                        }
+                        catch { }
+
+                        MessageBox.Show("AI vision camera service failed to start." + errDetail,
+                                        "Startup Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        StopBackgroundServer();
+                        return;
+                    }
                 }
+
+                splash.UpdateStatus("Launching application window...");
+                Application.DoEvents();
+                Thread.Sleep(150);
+                splash.Close();
             }
 
             // 3. Open Dedicated Desktop App Window (No address bar, no tabs!)
@@ -217,23 +241,73 @@ namespace PeopleCounter
             catch { }
         }
 
-        static bool WaitForServerReady(int timeoutSeconds)
+        static bool IsServerResponding()
         {
-            int elapsed = 0;
-            while (elapsed < timeoutSeconds * 2)
+            try
             {
-                try
+                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(appUrl + "/api/stats");
+                req.Timeout = 500;
+                using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
                 {
-                    HttpWebRequest req = (HttpWebRequest)WebRequest.Create(appUrl + "/api/stats");
-                    req.Timeout = 800;
-                    using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
-                    {
-                        if (resp.StatusCode == HttpStatusCode.OK) return true;
-                    }
+                    if (resp.StatusCode == HttpStatusCode.OK) return true;
                 }
-                catch { }
-                Thread.Sleep(500);
-                elapsed++;
+            }
+            catch { }
+            return false;
+        }
+
+        static void FreePort8000IfOccupied()
+        {
+            try
+            {
+                Process p = new Process();
+                p.StartInfo.FileName = "powershell.exe";
+                p.StartInfo.Arguments = "-NoProfile -Command \"Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | ForEach-Object { try { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue } catch {} }\"";
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.UseShellExecute = false;
+                p.Start();
+                p.WaitForExit(2000);
+            }
+            catch { }
+        }
+
+        static bool WaitForServerReady(SplashScreen splash, int timeoutSeconds)
+        {
+            int elapsedMs = 0;
+            int totalMs = timeoutSeconds * 1000;
+
+            while (elapsedMs < totalMs)
+            {
+                // If Python process died, abort wait immediately
+                if (serverProcess != null && serverProcess.HasExited)
+                {
+                    return false;
+                }
+
+                if (IsServerResponding())
+                {
+                    return true;
+                }
+
+                // Pump Windows messages continuously for 200ms in 20ms slices to prevent UI freeze
+                DateTime slice = DateTime.Now;
+                while ((DateTime.Now - slice).TotalMilliseconds < 200)
+                {
+                    Application.DoEvents();
+                    Thread.Sleep(20);
+                }
+                elapsedMs += 200;
+
+                if (splash != null)
+                {
+                    int sec = elapsedMs / 1000;
+                    if (sec < 2)
+                        splash.UpdateStatus("Starting Python computer vision engine...");
+                    else if (sec < 5)
+                        splash.UpdateStatus(string.Format("Loading YOLOv8 neural network & camera... ({0}s)", sec));
+                    else
+                        splash.UpdateStatus(string.Format("Initializing AI stream & web server... ({0}s)", sec));
+                }
             }
             return false;
         }
@@ -283,10 +357,11 @@ namespace PeopleCounter
             {
                 StopBackgroundServer();
                 Thread.Sleep(1000);
+                FreePort8000IfOccupied();
                 string venvPython = Path.Combine(baseDir, ".venv", "Scripts", "python.exe");
                 string appPy = Path.Combine(baseDir, "app.py");
                 StartBackgroundServer(venvPython, appPy, baseDir);
-                WaitForServerReady(20);
+                WaitForServerReady(null, 20);
                 LaunchAppWindow();
             };
             menu.Items.Add(itemRestart);
@@ -326,24 +401,47 @@ namespace PeopleCounter
                     Path.Combine(userProfile, "OneDrive", "Masaüstü")
                 };
 
+                bool needsCreation = false;
                 foreach (string d in candidateDesktops)
                 {
                     if (!string.IsNullOrEmpty(d) && Directory.Exists(d))
                     {
                         string sc = Path.Combine(d, "People Counter.lnk");
-                        string psCmd = string.Format(
-                            "$w = New-Object -ComObject WScript.Shell; $s = $w.CreateShortcut('{0}'); $s.TargetPath = '{1}'; $s.WorkingDirectory = '{2}'; $s.Description = 'AI Camera People Counter & Revenue Tracker'; $s.IconLocation = '{3}'; $s.Save()",
-                            sc.Replace("'", "''"), targetExe.Replace("'", "''"), workDir.Replace("'", "''"), iconArg.Replace("'", "''")
-                        );
-                        Process p = new Process();
-                        p.StartInfo.FileName = "powershell.exe";
-                        p.StartInfo.Arguments = "-NoProfile -Command \"" + psCmd + "\"";
-                        p.StartInfo.CreateNoWindow = true;
-                        p.StartInfo.UseShellExecute = false;
-                        p.Start();
-                        p.WaitForExit(3000);
+                        if (!File.Exists(sc))
+                        {
+                            needsCreation = true;
+                            break;
+                        }
                     }
                 }
+
+                if (!needsCreation) return;
+
+                ThreadPool.QueueUserWorkItem((state) =>
+                {
+                    try
+                    {
+                        foreach (string d in candidateDesktops)
+                        {
+                            if (!string.IsNullOrEmpty(d) && Directory.Exists(d))
+                            {
+                                string sc = Path.Combine(d, "People Counter.lnk");
+                                string psCmd = string.Format(
+                                    "$w = New-Object -ComObject WScript.Shell; $s = $w.CreateShortcut('{0}'); $s.TargetPath = '{1}'; $s.WorkingDirectory = '{2}'; $s.Description = 'AI Camera People Counter & Revenue Tracker'; $s.IconLocation = '{3}'; $s.Save()",
+                                    sc.Replace("'", "''"), targetExe.Replace("'", "''"), workDir.Replace("'", "''"), iconArg.Replace("'", "''")
+                                );
+                                Process p = new Process();
+                                p.StartInfo.FileName = "powershell.exe";
+                                p.StartInfo.Arguments = "-NoProfile -Command \"" + psCmd + "\"";
+                                p.StartInfo.CreateNoWindow = true;
+                                p.StartInfo.UseShellExecute = false;
+                                p.Start();
+                                p.WaitForExit(3000);
+                            }
+                        }
+                    }
+                    catch { }
+                });
             }
             catch { }
         }
@@ -351,6 +449,9 @@ namespace PeopleCounter
 
     class SplashScreen : Form
     {
+        private Label lblStatus;
+        private ProgressBar progressBar;
+
         public SplashScreen()
         {
             this.Text = "AI Camera People Counter";
@@ -395,20 +496,34 @@ namespace PeopleCounter
             lblSub.Size = new Size(390, 20);
             this.Controls.Add(lblSub);
 
-            Label lblStatus = new Label();
+            lblStatus = new Label();
             lblStatus.Text = "Initializing AI vision engine and camera service...";
             lblStatus.Font = new Font("Segoe UI", 8.5F, FontStyle.Regular);
             lblStatus.ForeColor = Color.FromArgb(148, 163, 184);
             lblStatus.Location = new Point(30, 115);
-            lblStatus.Size = new Size(390, 18);
+            lblStatus.Size = new Size(400, 20);
             this.Controls.Add(lblStatus);
 
-            ProgressBar pb = new ProgressBar();
-            pb.Style = ProgressBarStyle.Marquee;
-            pb.MarqueeAnimationSpeed = 25;
-            pb.Location = new Point(30, 142);
-            pb.Size = new Size(400, 14);
-            this.Controls.Add(pb);
+            progressBar = new ProgressBar();
+            progressBar.Style = ProgressBarStyle.Marquee;
+            progressBar.MarqueeAnimationSpeed = 25;
+            progressBar.Location = new Point(30, 142);
+            progressBar.Size = new Size(400, 14);
+            this.Controls.Add(progressBar);
+        }
+
+        public void UpdateStatus(string message)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action<string>(UpdateStatus), message);
+                return;
+            }
+            if (lblStatus != null && !lblStatus.IsDisposed)
+            {
+                lblStatus.Text = message;
+            }
+            Application.DoEvents();
         }
     }
 }
