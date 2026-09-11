@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="doc-title">AI Camera People Counter & Revenue Tracker</title>
+    <title id="doc-title">AI Kamera Kişi Sayacı & Gelir Takip Sistemi</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <meta name="application-name" content="AI Kamera Kişi Sayacı">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -25,6 +30,11 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        button, select, .select-none { user-select: none; -webkit-user-select: none; }
         .glow-green {
             box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
         }
@@ -89,6 +99,11 @@
             <!-- Reset Day -->
             <button onclick="confirmReset()" class="p-2 rounded-lg bg-slate-800 hover:bg-rose-950/40 border border-slate-700 hover:border-rose-800 text-slate-400 hover:text-rose-400 transition" title="Reset Today's Counters">
                 <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Fullscreen Mode -->
+            <button onclick="toggleFullScreen()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition" title="Tam Ekran / Fullscreen">
+                <i data-lucide="maximize" class="w-4 h-4"></i>
             </button>
         </div>
     </header>
@@ -1386,7 +1401,16 @@
         function openSettingsModal() { document.getElementById('modal-settings').classList.remove('hidden'); }
         function closeSettingsModal() { document.getElementById('modal-settings').classList.add('hidden'); }
         function openGoogleModal() { document.getElementById('modal-google').classList.remove('hidden'); }
-        function closeGoogleModal() { document.getElementById('modal-google').classList.add('hidden'); }
+        // Fullscreen Controller
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
+            }
+        }
     </script>
 </body>
 </html>

@@ -547,12 +547,15 @@ namespace PeopleCounterInstaller
         {
             try
             {
+                string icoPath = Path.Combine(workingDir, "app.ico");
+                string iconArg = File.Exists(icoPath) ? icoPath : "shell32.dll,19";
                 string psCmd = string.Format(
-                    "$w = New-Object -ComObject WScript.Shell; $s = $w.CreateShortcut('{0}'); $s.TargetPath = '{1}'; $s.WorkingDirectory = '{2}'; $s.Description = '{3}'; $s.IconLocation = 'shell32.dll,19'; $s.Save()",
+                    "$w = New-Object -ComObject WScript.Shell; $s = $w.CreateShortcut('{0}'); $s.TargetPath = '{1}'; $s.WorkingDirectory = '{2}'; $s.Description = '{3}'; $s.IconLocation = '{4}'; $s.Save()",
                     shortcutPath.Replace("'", "''"),
                     targetPath.Replace("'", "''"),
                     workingDir.Replace("'", "''"),
-                    description.Replace("'", "''")
+                    description.Replace("'", "''"),
+                    iconArg.Replace("'", "''")
                 );
                 Process proc = new Process();
                 proc.StartInfo.FileName = "powershell.exe";

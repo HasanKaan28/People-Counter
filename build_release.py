@@ -52,7 +52,12 @@ def get_github_token():
 
 def build_executables():
     print("=== [1/5] Compiling PeopleCounter.exe ===")
-    cmd_pc = [CSC_PATH, "/nologo", "/target:exe", "/out:PeopleCounter.exe", "PeopleCounter.cs"]
+    cmd_pc = [
+        CSC_PATH, "/nologo", "/target:winexe",
+        "/r:System.Windows.Forms.dll", "/r:System.Drawing.dll",
+        "/win32icon:app.ico",
+        "/out:PeopleCounter.exe", "PeopleCounter.cs"
+    ]
     subprocess.check_call(cmd_pc)
     print("[OK] PeopleCounter.exe compiled.")
 
@@ -61,7 +66,7 @@ def build_executables():
         'PeopleCounter.exe', 'PeopleCounter.cs', 'Setup.bat', 'Start.bat', 'Install.bat',
         'install.sh', 'start.sh', 'app.py', 'config.py', 'config.json', 'database.py',
         'tracker.py', 'camera_stream.py', 'google_sync.py', 'google_apps_script_template.js',
-        'requirements.txt', 'README.md', 'USER_GUIDE.md', 'yolov8n.pt',
+        'requirements.txt', 'README.md', 'USER_GUIDE.md', 'yolov8n.pt', 'app.ico',
         os.path.join('templates', 'index.html')
     ]
     with zipfile.ZipFile("payload.zip", "w", zipfile.ZIP_DEFLATED) as zf:
@@ -74,6 +79,7 @@ def build_executables():
     cmd_setup = [
         CSC_PATH, "/nologo", "/target:winexe",
         "/resource:payload.zip,payload.zip",
+        "/win32icon:app.ico",
         "/out:PeopleCounter-Setup.exe",
         "/r:System.Windows.Forms.dll", "/r:System.Drawing.dll",
         "/r:System.IO.Compression.FileSystem.dll", "/r:System.IO.Compression.dll",
@@ -143,7 +149,7 @@ def sync_git_and_release(version_tag, notes=""):
         'PeopleCounter-Setup.exe', 'PeopleCounter.exe', 'Setup.bat', 'Start.bat', 'Install.bat',
         'install.sh', 'start.sh', 'app.py', 'config.py', 'config.json', 'database.py',
         'tracker.py', 'camera_stream.py', 'google_sync.py', 'google_apps_script_template.js',
-        'requirements.txt', 'README.md', 'USER_GUIDE.md', 'yolov8n.pt',
+        'requirements.txt', 'README.md', 'USER_GUIDE.md', 'yolov8n.pt', 'app.ico',
         os.path.join('templates', 'index.html')
     ]
     with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zf:

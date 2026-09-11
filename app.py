@@ -6,7 +6,7 @@ import threading
 from datetime import datetime, date
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, Response
+from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, Response, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import cv2
@@ -159,6 +159,14 @@ reset_thread.start()
 async def index(request: Request):
     """Main dashboard interface."""
     return templates.TemplateResponse(request=request, name="index.html")
+
+@app.get("/favicon.ico")
+async def get_favicon():
+    """Serves the application icon."""
+    ico_path = os.path.join(BASE_DIR, "app.ico")
+    if os.path.exists(ico_path):
+        return FileResponse(ico_path, media_type="image/x-icon")
+    return Response(status_code=204)
 
 def generate_video_frames():
     """Captures camera frame, applies AI tracking, and yields MJPEG stream."""
