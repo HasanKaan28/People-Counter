@@ -106,6 +106,53 @@ def periodic_sync_loop():
 sync_thread = threading.Thread(target=periodic_sync_loop, daemon=True)
 sync_thread.start()
 
+# Scheduled Nightly Auto-Reset Loop (Background Thread)
+def scheduled_auto_reset_loop():
+    while True:
+        try:
+            cfg = load_config()
+            auto_cfg = cfg.get("auto_reset", {})
+            if auto_cfg.get("enabled", True):
+                reset_time = auto_cfg.get("reset_time", "00:00")
+                now_str = datetime.now().strftime("%H:%M")
+                today_str = datetime.now().strftime("%Y-%m-%d")
+                last_reset = auto_cfg.get("last_reset_date", "")
+
+                if now_str == reset_time and last_reset != today_str:
+                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [AUTO-RESET] Triggering daily auto-reset ({reset_time})...")
+                    # 1. Final cloud sync before reset
+                    stats = db.get_today_stats(
+                        fee_per_adult=cfg.get("price_per_adult", 20.0),
+                        fee_per_child=cfg.get("price_per_child", 0.0),
+                        charge_children=cfg.get("charge_children", False)
+                    )
+                    google_sync.push_update(stats, is_instant_event=False)
+
+                    # 2. Reset today's database records and in-memory tracker state
+                    db.reset_today_data()
+                    fresh_stats = db.get_today_stats(
+                        fee_per_adult=cfg.get("price_per_adult", 20.0),
+                        fee_per_child=cfg.get("price_per_child", 0.0),
+                        charge_children=cfg.get("charge_children", False)
+                    )
+                    tracker.set_counts(fresh_stats)
+                    tracker.zone_cross_state.clear()
+                    tracker.event_cooldown.clear()
+                    tracker.last_line_hit.clear()
+                    tracker.counted_in_ids.clear()
+                    tracker.counted_out_ids.clear()
+
+                    # 3. Update last reset date
+                    cfg["auto_reset"]["last_reset_date"] = today_str
+                    save_config(cfg)
+                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [AUTO-RESET] Daily reset completed successfully.")
+        except Exception as e:
+            print(f"Auto-reset loop error: {e}")
+        time.sleep(25)
+
+reset_thread = threading.Thread(target=scheduled_auto_reset_loop, daemon=True)
+reset_thread.start()
+
 # --- WEB & API ENDPOINTS ---
 
 @app.get("/", response_class=HTMLResponse)

@@ -282,25 +282,25 @@ class PersonTracker:
                     else:
                         color_a = color_b = (0, 165, 255)    # Orange for OUT
 
-                # Draw Line A (Outer / Dış)
+                # Draw Line A (Outer / Dış Çizgi - Kapı Önü)
                 p1_a, p2_a = zinfo["p1_a"], zinfo["p2_a"]
                 cv2.line(frame, p1_a, p2_a, color_a, 2)
                 cv2.circle(frame, p1_a, 5, color_a, -1)
                 cv2.circle(frame, p2_a, 5, color_a, -1)
                 mid_a = ((p1_a[0] + p2_a[0]) // 2, (p1_a[1] + p2_a[1]) // 2)
-                cv2.putText(frame, f"{style['label']} A (OUT)", (mid_a[0] - 45, mid_a[1] - 8),
+                cv2.putText(frame, f"{style['label']} 1 (DIS)", (mid_a[0] - 45, mid_a[1] - 8),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.45, color_a, 1, cv2.LINE_AA)
 
-                # Draw Line B (Inner / İç)
+                # Draw Line B (Inner / İç Çizgi - Tuvalet İçi)
                 p1_b, p2_b = zinfo["p1_b"], zinfo["p2_b"]
                 cv2.line(frame, p1_b, p2_b, color_b, 2)
                 cv2.circle(frame, p1_b, 5, color_b, -1)
                 cv2.circle(frame, p2_b, 5, color_b, -1)
                 mid_b = ((p1_b[0] + p2_b[0]) // 2, (p1_b[1] + p2_b[1]) // 2)
-                cv2.putText(frame, f"{style['label']} B (IN)", (mid_b[0] - 40, mid_b[1] - 8),
+                cv2.putText(frame, f"{style['label']} 2 (IC)", (mid_b[0] - 40, mid_b[1] - 8),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.45, color_b, 1, cv2.LINE_AA)
 
-                # Draw Direction indicator between lines
+                # Draw Direction indicator between lines (1 -> 2 = GİRİŞ)
                 arrow_start = mid_a
                 arrow_end = mid_b
                 cv2.arrowedLine(frame, arrow_start, arrow_end, color_b, 1, tipLength=0.25)

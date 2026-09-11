@@ -136,10 +136,26 @@ def sync_git_and_release(version_tag, notes=""):
         else:
             raise
 
+    # Package Zip Release
+    zip_filename = f"PeopleCounter-{tag_name}-Windows.zip"
+    print(f"Creating release package: {zip_filename}...")
+    release_files = [
+        'PeopleCounter-Setup.exe', 'PeopleCounter.exe', 'Setup.bat', 'Start.bat', 'Install.bat',
+        'install.sh', 'start.sh', 'app.py', 'config.py', 'config.json', 'database.py',
+        'tracker.py', 'camera_stream.py', 'google_sync.py', 'google_apps_script_template.js',
+        'requirements.txt', 'README.md', 'USER_GUIDE.md', 'yolov8n.pt',
+        os.path.join('templates', 'index.html')
+    ]
+    with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for rf in release_files:
+            if os.path.exists(rf):
+                zf.write(rf, arcname=rf)
+
     # Upload Assets
     assets = [
         ('PeopleCounter-Setup.exe', 'application/vnd.microsoft.portable-executable'),
-        ('PeopleCounter.exe', 'application/vnd.microsoft.portable-executable')
+        ('PeopleCounter.exe', 'application/vnd.microsoft.portable-executable'),
+        (zip_filename, 'application/zip')
     ]
 
     for filename, content_type in assets:
@@ -161,6 +177,9 @@ def sync_git_and_release(version_tag, notes=""):
                 print(f"[OK] Uploaded {filename} to GitHub Release {tag_name} (Status: {up_resp.status})")
         except urllib.error.HTTPError as ue:
             print(f"[WARN] Upload {filename} status: {ue.code}")
+
+    if os.path.exists(zip_filename):
+        os.remove(zip_filename)
 
     print(f"\n✨ Successfully built and published {tag_name} to GitHub!")
 

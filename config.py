@@ -67,6 +67,13 @@ DEFAULT_CONFIG = {
         "end_time": "21:00"
     },
 
+    # Scheduled Auto-Reset (Daily Reset at Midnight e.g., "00:00")
+    "auto_reset": {
+        "enabled": True,
+        "reset_time": "00:00",
+        "last_reset_date": ""
+    },
+
     # AI Model Settings
     "model_confidence": 0.35,
     "tracker_type": "bytetrack.yaml"
@@ -90,6 +97,13 @@ def load_config():
                 for zk, zv in DEFAULT_CONFIG["zones"].items():
                     if zk not in data["zones"]:
                         data["zones"][zk] = zv.copy()
+            # Deep merge auto_reset
+            if "auto_reset" not in data or not isinstance(data["auto_reset"], dict):
+                data["auto_reset"] = DEFAULT_CONFIG["auto_reset"].copy()
+            else:
+                for ak, av in DEFAULT_CONFIG["auto_reset"].items():
+                    if ak not in data["auto_reset"]:
+                        data["auto_reset"][ak] = av
             return data
     except Exception as e:
         print(f"Error loading configuration: {e}")

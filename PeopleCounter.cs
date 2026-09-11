@@ -21,112 +21,131 @@ namespace PeopleCounter
             Console.WriteLine("=================================================================");
             Console.WriteLine();
 
-            // 1. Check if running inside Windows temporary ZIP preview folder
-            bool isTempOrZip = baseDir.IndexOf("Temp", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                               baseDir.IndexOf(".zip", StringComparison.OrdinalIgnoreCase) >= 0;
+            string localAppDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "PeopleCounter");
+            string localAppPy = Path.Combine(localAppDir, "app.py");
+            string localAppExe = Path.Combine(localAppDir, "PeopleCounter.exe");
+            string localVenvPython = Path.Combine(localAppDir, ".venv", "Scripts", "python.exe");
 
-            if (isTempOrZip && (!File.Exists(setupBat) || !File.Exists(appPy)))
+            // If app.py does not exist in the current folder (e.g. executed from Temp or standalone):
+            if (!File.Exists(appPy))
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("=================================================================");
-                Console.WriteLine("           [HATA] ZIP DOSYASI AYIKLANMAMIŞ!");
-                Console.WriteLine("         [ERROR] ZIP ARCHIVE NOT EXTRACTED!");
-                Console.WriteLine("=================================================================");
-                Console.ResetColor();
-                Console.WriteLine();
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("PeopleCounter.exe dosyasını ZIP dosyasının içinden doğrudan");
-                Console.WriteLine("çalıştırdınız. Windows diğer dosyaları geçici klasöre taşımadı.");
-                Console.WriteLine();
-                Console.WriteLine("ÇÖZÜM ADIMLARI:");
-                Console.WriteLine("1. İndirdiğiniz 'PeopleCounter-v1.1.0-Windows.zip' dosyasına SAĞ TIKLAYIN.");
-                Console.WriteLine("2. 'Tümünü Ayıkla...' (Extract All) seçeneğine tıklayın.");
-                Console.WriteLine("3. Çıkarılan klasörün içine girip 'PeopleCounter.exe'yi oradan çalıştırın.");
-                Console.WriteLine();
-                Console.WriteLine("-----------------------------------------------------------------");
-                Console.WriteLine("HOW TO FIX:");
-                Console.WriteLine("1. Right-click the downloaded 'PeopleCounter-v1.1.0-Windows.zip'.");
-                Console.WriteLine("2. Click 'Extract All...'.");
-                Console.WriteLine("3. Open the extracted folder and run 'PeopleCounter.exe' from there.");
-                Console.ResetColor();
-                Console.WriteLine();
-                Console.WriteLine("Press any key to exit / Çıkmak için bir tuşa basın...");
-                Console.ReadKey();
-                return;
-            }
+                // Check if already installed in LocalAppData
+                if (File.Exists(localAppPy) && File.Exists(localAppExe))
+                {
+                    Console.WriteLine("[INFO] People Counter is installed at: " + localAppDir);
+                    Console.WriteLine("[INFO] Redirecting execution to installed application...");
+                    try
+                    {
+                        Process p = new Process();
+                        p.StartInfo.FileName = localAppExe;
+                        p.StartInfo.WorkingDirectory = localAppDir;
+                        p.StartInfo.UseShellExecute = true;
+                        p.Start();
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("[WARN] Could not launch installed exe: " + ex.Message);
+                    }
+                }
 
-            // 2. If app files are missing (e.g. user downloaded only PeopleCounter.exe), auto-download package
-            if (!File.Exists(setupBat) || !File.Exists(appPy))
-            {
-                Console.WriteLine("[INFO] Application files not found in: " + baseDir);
-                Console.WriteLine("[INFO] Downloading full package from GitHub release, please wait...");
-                Console.WriteLine();
+                // Check if PeopleCounter-Setup.exe exists locally
+                string localSetup = Path.Combine(baseDir, "PeopleCounter-Setup.exe");
+                if (!File.Exists(localSetup))
+                {
+                    DirectoryInfo parentInfo = Directory.GetParent(baseDir);
+                    string parentDir = parentInfo != null ? parentInfo.FullName : "";
+                    string parentSetup = Path.Combine(parentDir, "PeopleCounter-Setup.exe");
+                    if (File.Exists(parentSetup)) localSetup = parentSetup;
+                }
 
-                string zipUrl = "https://github.com/HasanKaan28/kamera-kisi-sayaci/releases/download/v1.1.0/PeopleCounter-v1.1.0-Windows.zip";
-                string tempZip = Path.Combine(baseDir, "package_download.zip");
+                if (File.Exists(localSetup))
+                {
+                    Console.WriteLine("[INFO] Running installer: " + localSetup);
+                    Process.Start(new ProcessStartInfo(localSetup, "/auto") { UseShellExecute = true });
+                    return;
+                }
+
+                // Download PeopleCounter-Setup.exe directly
+                Console.WriteLine("[INFO] Application files not found. Downloading clean installer...");
+                Console.WriteLine("[INFO] Please wait a moment while setup is prepared...");
+                string setupUrl = "https://github.com/HasanKaan28/kamera-kisi-sayaci/releases/latest/download/PeopleCounter-Setup.exe";
+                string tempSetup = Path.Combine(Path.GetTempPath(), "PeopleCounter-Setup.exe");
 
                 try
                 {
-                    ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; // TLS 1.2
+                    ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
                     using (WebClient client = new WebClient())
                     {
-                        client.Headers.Add("User-Agent", "PeopleCounter-Launcher");
-                        client.DownloadFile(zipUrl, tempZip);
+                        client.Headers.Add("User-Agent", "PeopleCounter-Bootstrap");
+                        client.DownloadFile(setupUrl, tempSetup);
                     }
-
-                    Console.WriteLine("[INFO] Extracting application files...");
-                    Process p = new Process();
-                    p.StartInfo.FileName = "powershell.exe";
-                    p.StartInfo.Arguments = string.Format("-NoProfile -ExecutionPolicy Bypass -Command \"Expand-Archive -Path '{0}' -DestinationPath '{1}' -Force\"", tempZip, baseDir);
-                    p.StartInfo.UseShellExecute = false;
-                    p.Start();
-                    p.WaitForExit();
-
-                    if (File.Exists(tempZip)) File.Delete(tempZip);
-                    Console.WriteLine("[OK] Application files extracted successfully!");
-                    Console.WriteLine();
+                    Console.WriteLine("[OK] Installer downloaded. Starting setup wizard...");
+                    Process.Start(new ProcessStartInfo(tempSetup, "/auto") { UseShellExecute = true });
+                    return;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("[ERROR] Could not auto-download package: " + ex.Message);
-                    Console.WriteLine("Please download and extract 'PeopleCounter-v1.1.0-Windows.zip' manually.");
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("[ERROR] Could not auto-download installer: " + ex.Message);
+                    Console.WriteLine("Please download 'PeopleCounter-Setup.exe' directly from:");
+                    Console.WriteLine("https://github.com/HasanKaan28/kamera-kisi-sayaci/releases/latest");
+                    Console.ResetColor();
+                    Console.WriteLine();
                     Console.WriteLine("Press any key to exit...");
                     Console.ReadKey();
                     return;
                 }
             }
 
-            // 3. Check if virtual environment is installed
+            // If app.py exists here, verify virtual environment (.venv)
             if (!File.Exists(venvPython))
             {
-                Console.WriteLine("[NOTICE] First-time setup required. Running automated setup wizard...");
-                Console.WriteLine();
-
-                if (File.Exists(setupBat))
+                // If this is running in another folder but localApp has .venv, we can use localVenvPython
+                if (File.Exists(localVenvPython))
                 {
-                    Process setupProc = new Process();
-                    setupProc.StartInfo.FileName = "cmd.exe";
-                    setupProc.StartInfo.Arguments = "/c \"" + setupBat + "\"";
-                    setupProc.StartInfo.WorkingDirectory = baseDir;
-                    setupProc.StartInfo.UseShellExecute = false;
-                    setupProc.Start();
-                    setupProc.WaitForExit();
+                    venvPython = localVenvPython;
                 }
                 else
                 {
-                    Console.WriteLine("[ERROR] Setup.bat not found in: " + baseDir);
-                    Console.WriteLine("Press any key to exit...");
-                    Console.ReadKey();
-                    return;
-                }
+                    Console.WriteLine("[NOTICE] Virtual environment (.venv) not found. Running automated setup...");
+                    string setupExe = Path.Combine(baseDir, "PeopleCounter-Setup.exe");
+                    if (File.Exists(setupExe))
+                    {
+                        Process p = Process.Start(new ProcessStartInfo(setupExe, "/auto") { UseShellExecute = true });
+                        p.WaitForExit();
+                    }
+                    else if (File.Exists(setupBat))
+                    {
+                        Process setupProc = new Process();
+                        setupProc.StartInfo.FileName = "cmd.exe";
+                        setupProc.StartInfo.Arguments = "/c \"" + setupBat + "\"";
+                        setupProc.StartInfo.WorkingDirectory = baseDir;
+                        setupProc.StartInfo.UseShellExecute = false;
+                        setupProc.Start();
+                        setupProc.WaitForExit();
+                    }
+                    else
+                    {
+                        // Direct python setup fallback
+                        Console.WriteLine("[INFO] Creating virtual environment (.venv)...");
+                        Process p = new Process();
+                        p.StartInfo.FileName = "powershell.exe";
+                        p.StartInfo.Arguments = "-NoProfile -Command \"python -m venv .venv; .\\.venv\\Scripts\\python.exe -m pip install -r requirements.txt\"";
+                        p.StartInfo.WorkingDirectory = baseDir;
+                        p.StartInfo.UseShellExecute = false;
+                        p.Start();
+                        p.WaitForExit();
+                    }
 
-                if (!File.Exists(venvPython))
-                {
-                    Console.WriteLine();
-                    Console.WriteLine("[ERROR] Setup did not complete successfully. Please run Setup.bat manually.");
-                    Console.WriteLine("Press any key to exit...");
-                    Console.ReadKey();
-                    return;
+                    if (!File.Exists(venvPython))
+                    {
+                        Console.WriteLine("[ERROR] Setup could not be completed automatically.");
+                        Console.WriteLine("Please run 'PeopleCounter-Setup.exe' to perform a clean setup.");
+                        Console.WriteLine("Press any key to exit...");
+                        Console.ReadKey();
+                        return;
+                    }
                 }
             }
 

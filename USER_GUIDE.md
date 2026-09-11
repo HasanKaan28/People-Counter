@@ -39,26 +39,38 @@ This system monitors your Hikvision / IP RTSP security camera or USB webcam 24/7
 
 ---
 
-## 🚪 3. Configuring Dual Restroom Tripwires (2+2 Lines)
+## 🚪 3. Dual Restroom Tripwires: Same-Door Operation (Tek Kapı Giriş-Çıkış)
 
-The system uses a **Dual-Line Sequence (Line A & Line B)** for both **Men's** and **Women's** restrooms:
-- **Line A:** Outer line (Dış hat - outside the doorway)
-- **Line B:** Inner line (İç hat - inside the doorway)
-- **Crossing Line A &rarr; Line B:** Automatically counts as **ENTRY (GİRİŞ)** (+1 In, +1 Inside occupancy, adds admission fee).
-- **Crossing Line B &rarr; Line A:** Automatically counts as **EXIT (ÇIKIŞ)** (+1 Out, -1 Inside occupancy).
+In public restrooms, each restroom (Men's / Women's) typically has **one doorway for both entering and exiting**:
+- **Line 1 (Dış Çizgi - Outer):** Placed right in front of the door in the hallway/waiting area (near the cashier desk).
+- **Line 2 (İç Çizgi - Inner):** Placed just inside the doorway.
+- **Entering (Line 1 ➔ Line 2):** Counted as **GİRİŞ / ENTRY** (+1 In, +1 Inside occupancy, adds admission fee).
+- **Exiting (Line 2 ➔ Line 1):** Counted as **ÇIKIŞ / EXIT** through the same door (+1 Out, -1 Inside occupancy, free of charge).
+
+The **Live Restroom Occupancy Panel** on the dashboard displays whether each restroom is **EMPTY (BOŞ)** or **OCCUPIED (DOLU)** along with the real-time headcount inside.
 
 ### How to set the lines:
 1. Click **"Edit Tripwires (2+2)"** above the camera stream.
 2. Select the line you want to position:
-   - 🚹 **Men Line A (Outer)** & 🚹 **Men Line B (Inner)**
-   - 🚺 **Women Line A (Outer)** & 🚺 **Women Line B (Inner)**
+   - 🚹 **Men Door: 1. Outer (Corridor)** & 🚹 **Men Door: 2. Inner (Restroom)**
+   - 🚺 **Women Door: 1. Outer (Corridor)** & 🚺 **Women Door: 2. Inner (Restroom)**
 3. Click **two points** on the video canvas (Point 1: Start, Point 2: End) for each line.
 4. The system automatically saves your lines and advances to the next.
 5. Click **"Default Layout"** at any time to reset to standard side-by-side lines (Left: Men, Right: Women).
 
 ---
 
-## 💰 4. Admission Pricing & Child Classification
+## ⏰ 4. Scheduled Nightly Auto-Reset (Gece 00:00 Otomatik Sıfırlama)
+
+- In **Settings**, **Scheduled Nightly Auto-Reset** is enabled by default at **00:00** (midnight).
+- When midnight strikes, the system automatically:
+  1. Performs a final sync of the day's turnover to Google Sheets & local archives.
+  2. Clears transient tracking state and resets daily counts to 0 for the fresh day.
+  3. You can customize the reset time (e.g., `04:00` or `06:00` for late-night venues) in the Settings modal anytime.
+
+---
+
+## 💰 5. Admission Pricing & Child Classification
 
 - **Quick Rate:** Change the standard admission fee directly from the rate input on the revenue card.
 - **Child Classification:**

@@ -41,6 +41,11 @@
         "start_time": "08:00",
         "end_time": "21:00"
     },
+    "auto_reset": {
+        "enabled": true,
+        "reset_time": "00:00",
+        "last_reset_date": ""
+    },
     "model_confidence": 0.35,
     "tracker_type": "bytetrack.yaml"
 }
