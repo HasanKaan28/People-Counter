@@ -16,7 +16,7 @@ import ctypes
 from ctypes import wintypes
 
 CSC_PATH = r"C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-REPO = "HasanKaan28/kamera-kisi-sayaci"
+REPO = "HasanKaan28/People-Counter"
 
 def get_github_token():
     advapi32 = ctypes.windll.advapi32

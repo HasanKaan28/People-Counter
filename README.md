@@ -46,7 +46,7 @@ The web interface defaults to **English** and includes an instant **Language Swi
 ## 🚀 Quick Start
 
 ### 1. Windows (1-Click Standalone Installer - Recommended)
-1. Download **[`PeopleCounter-Setup.exe`](https://github.com/HasanKaan28/kamera-kisi-sayaci/releases/latest/download/PeopleCounter-Setup.exe)**.
+1. Download **[`PeopleCounter-Setup.exe`](https://github.com/HasanKaan28/People-Counter/releases/latest/download/PeopleCounter-Setup.exe)**.
 2. Double-click **`PeopleCounter-Setup.exe`** and click **"Install & Launch"**:
    - Automatically unpacks all files to a clean application folder (`AppData\Local\Programs\PeopleCounter`).
    - Automatically configures the Python virtual environment and installs all AI vision packages.
