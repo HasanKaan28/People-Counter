@@ -19,8 +19,28 @@ DEFAULT_CONFIG = {
     # Calibrated according to camera mounting angle
     "child_height_threshold": 160,
 
-    # Virtual Tripwire Line - Normalized coordinates (0.0 - 1.0)
-    # x1, y1, x2, y2 -> Start and end points of the tripwire
+    # Dual Restroom Zones: Men (Erkekler) & Women (Kadınlar)
+    # Each zone has 2 lines: Line A (Outer/Dış) and Line B (Inner/İç)
+    # Crossing Line A -> Line B = ENTRY (GİRİŞ)
+    # Crossing Line B -> Line A = EXIT (ÇIKIŞ)
+    "zones": {
+        "men": {
+            "name": "Men's Restroom",
+            "name_tr": "Erkekler Tuvaleti",
+            "enabled": True,
+            "line_a": {"x1": 0.08, "y1": 0.35, "x2": 0.42, "y2": 0.35},
+            "line_b": {"x1": 0.08, "y1": 0.60, "x2": 0.42, "y2": 0.60}
+        },
+        "women": {
+            "name": "Women's Restroom",
+            "name_tr": "Kadınlar Tuvaleti",
+            "enabled": True,
+            "line_a": {"x1": 0.58, "y1": 0.35, "x2": 0.92, "y2": 0.35},
+            "line_b": {"x1": 0.58, "y1": 0.60, "x2": 0.92, "y2": 0.60}
+        }
+    },
+
+    # Virtual Tripwire Line - Normalized coordinates (0.0 - 1.0) (Fallback)
     "line_coords": {
         "x1": 0.1,
         "y1": 0.5,
@@ -28,7 +48,7 @@ DEFAULT_CONFIG = {
         "y2": 0.5
     },
 
-    # Entrance Direction: "down" (top-to-bottom = IN), "up", "right", "left"
+    # Entrance Direction (Fallback)
     "in_direction": "down",
 
     # Google Sheets / Cloud Sync
@@ -63,6 +83,13 @@ def load_config():
             for k, v in DEFAULT_CONFIG.items():
                 if k not in data:
                     data[k] = v
+            # Deep merge zones
+            if "zones" not in data or not isinstance(data["zones"], dict):
+                data["zones"] = DEFAULT_CONFIG["zones"].copy()
+            else:
+                for zk, zv in DEFAULT_CONFIG["zones"].items():
+                    if zk not in data["zones"]:
+                        data["zones"][zk] = zv.copy()
             return data
     except Exception as e:
         print(f"Error loading configuration: {e}")

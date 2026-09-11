@@ -39,18 +39,21 @@ camera = HikvisionStream(
 camera.start()
 
 # Person Tracking Engine with Crossing Callback
-def on_entrance_event(person_type, track_id):
-    """Triggered upon verified tripwire crossing in the entrance direction."""
+def on_tracker_event(zone, direction, person_type, track_id):
+    """Triggered upon verified tripwire crossing in Men or Women zone (IN or OUT)."""
     cfg = load_config()
     is_child = (person_type == "child")
     
-    if is_child:
-        fee = cfg.get("price_per_child", 0.0) if cfg.get("charge_children", False) else 0.0
+    if direction == "in":
+        if is_child:
+            fee = cfg.get("price_per_child", 0.0) if cfg.get("charge_children", False) else 0.0
+        else:
+            fee = cfg.get("price_per_adult", 20.0)
     else:
-        fee = cfg.get("price_per_adult", 20.0)
+        fee = 0.0
 
-    # Persist to database
-    db.record_entrance(person_type=person_type, fee=fee, track_id=track_id)
+    # Persist event to database
+    db.record_event(zone=zone, direction=direction, person_type=person_type, fee=fee, track_id=track_id)
 
     # Fetch updated daily metrics
     stats = db.get_today_stats(
@@ -61,9 +64,10 @@ def on_entrance_event(person_type, track_id):
     tracker.set_counts(stats)
 
     # Trigger immediate cloud sync
-    google_sync.push_update(stats, is_instant_event=True)
+    if direction == "in":
+        google_sync.push_update(stats, is_instant_event=True)
 
-tracker = PersonTracker(config, on_entrance_callback=on_entrance_event)
+tracker = PersonTracker(config, on_event_callback=on_tracker_event)
 
 # Initialize tracker with existing daily stats
 initial_stats = db.get_today_stats(
@@ -194,6 +198,9 @@ async def reset_counts():
         charge_children=cfg.get("charge_children", False)
     )
     tracker.set_counts(stats)
+    tracker.zone_cross_state.clear()
+    tracker.event_cooldown.clear()
+    tracker.last_line_hit.clear()
     tracker.counted_in_ids.clear()
     tracker.counted_out_ids.clear()
     return JSONResponse({"success": True, "message": "Daily metrics reset successfully."})

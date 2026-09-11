@@ -29,21 +29,37 @@ function doPost(e) {
       sheet.appendRow([
         "Date", 
         "Last Update Time", 
+        "Men IN",
+        "Men OUT",
+        "Men Inside",
+        "Women IN",
+        "Women OUT",
+        "Women Inside",
+        "Total IN",
+        "Total OUT",
+        "Total Inside",
         "Adults", 
         "Children", 
-        "Total Entrances", 
         "Admission Rate", 
         "TOTAL REVENUE",
         "Status / Notes"
       ]);
-      sheet.getRange("A1:H1").setFontWeight("bold").setBackground("#10b981").setFontColor("#ffffff");
+      sheet.getRange("A1:P1").setFontWeight("bold").setBackground("#10b981").setFontColor("#ffffff");
     }
 
     var todayStr = data.date || data.tarih;
     var timeStr = data.time || data.saat;
+    var menIn = data.men_in !== undefined ? data.men_in : (data.erkek_giris || 0);
+    var menOut = data.men_out !== undefined ? data.men_out : (data.erkek_cikis || 0);
+    var menInside = data.men_inside !== undefined ? data.men_inside : 0;
+    var womenIn = data.women_in !== undefined ? data.women_in : (data.kadin_giris || 0);
+    var womenOut = data.women_out !== undefined ? data.women_out : (data.kadin_cikis || 0);
+    var womenInside = data.women_inside !== undefined ? data.women_inside : 0;
+    var totalIn = data.total_in !== undefined ? data.total_in : (data.total_count || 0);
+    var totalOut = data.total_out !== undefined ? data.total_out : 0;
+    var totalInside = data.total_inside !== undefined ? data.total_inside : 0;
     var adults = data.adults !== undefined ? data.adults : (data.yetiskin_sayisi || 0);
     var children = data.children !== undefined ? data.children : (data.cocuk_sayisi || 0);
-    var total = data.total_count !== undefined ? data.total_count : (data.toplam_giris || 0);
     var price = data.rate !== undefined ? data.rate : (data.kisi_basi_ucret || 0);
     var revenue = data.revenue !== undefined ? data.revenue : (data.toplam_ciro_tl || 0);
 
@@ -58,27 +74,31 @@ function doPost(e) {
       }
     }
 
+    var rowValues = [
+      todayStr,
+      timeStr,
+      menIn,
+      menOut,
+      menInside,
+      womenIn,
+      womenOut,
+      womenInside,
+      totalIn,
+      totalOut,
+      totalInside,
+      adults,
+      children,
+      price,
+      revenue,
+      "Live Synced"
+    ];
+
     if (rowIndex > 0) {
       // Update existing row
-      sheet.getRange(rowIndex, 2).setValue(timeStr);
-      sheet.getRange(rowIndex, 3).setValue(adults);
-      sheet.getRange(rowIndex, 4).setValue(children);
-      sheet.getRange(rowIndex, 5).setValue(total);
-      sheet.getRange(rowIndex, 6).setValue(price);
-      sheet.getRange(rowIndex, 7).setValue(revenue);
-      sheet.getRange(rowIndex, 8).setValue("Live Synced");
+      sheet.getRange(rowIndex, 1, 1, rowValues.length).setValues([rowValues]);
     } else {
       // Insert new row for today
-      sheet.appendRow([
-        todayStr,
-        timeStr,
-        adults,
-        children,
-        total,
-        price,
-        revenue,
-        "Shift Started"
-      ]);
+      sheet.appendRow(rowValues);
     }
 
     return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))

@@ -38,15 +38,22 @@ This system monitors your Hikvision / IP RTSP security camera or USB webcam 24/7
 
 ---
 
-## 🚪 3. Drawing the Virtual Tripwire
+## 🚪 3. Configuring Dual Restroom Tripwires (2+2 Lines)
 
-1. Click **"Edit Tripwire"** above the live camera feed.
-2. Click **two points** on the video canvas to define the entrance threshold line (Point 1: Start, Point 2: End).
-3. The tripwire line will be rendered in yellow.
-4. Set the entrance direction from Settings:
-   - Moving top to bottom: **Top to Bottom (Down)**
-   - Moving bottom to top: **Bottom to Top (Up)**
-5. Whenever a person crosses the tripwire in the designated direction, the line flashes green, the counter increments, and revenue is added instantly!
+The system uses a **Dual-Line Sequence (Line A & Line B)** for both **Men's** and **Women's** restrooms:
+- **Line A:** Outer line (Dış hat - outside the doorway)
+- **Line B:** Inner line (İç hat - inside the doorway)
+- **Crossing Line A &rarr; Line B:** Automatically counts as **ENTRY (GİRİŞ)** (+1 In, +1 Inside occupancy, adds admission fee).
+- **Crossing Line B &rarr; Line A:** Automatically counts as **EXIT (ÇIKIŞ)** (+1 Out, -1 Inside occupancy).
+
+### How to set the lines:
+1. Click **"Edit Tripwires (2+2)"** above the camera stream.
+2. Select the line you want to position:
+   - 🚹 **Men Line A (Outer)** & 🚹 **Men Line B (Inner)**
+   - 🚺 **Women Line A (Outer)** & 🚺 **Women Line B (Inner)**
+3. Click **two points** on the video canvas (Point 1: Start, Point 2: End) for each line.
+4. The system automatically saves your lines and advances to the next.
+5. Click **"Default Layout"** at any time to reset to standard side-by-side lines (Left: Men, Right: Women).
 
 ---
 

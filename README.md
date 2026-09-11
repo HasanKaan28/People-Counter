@@ -15,9 +15,10 @@ The web interface defaults to **English** and includes an instant **Language Swi
 
 ## ✨ Key Capabilities
 
+- 🚻 **Dual-Zone Restroom Tracking (Men & Women):** Track Men's and Women's restrooms simultaneously on a single camera view, with dedicated counters and live inside occupancy metrics.
+- ⚡ **Dual-Line Directional Tripwires (2+2 Lines):** Outer Line A and Inner Line B for each entrance. Crossing A &rarr; B triggers **ENTRY (GİRİŞ)**; crossing B &rarr; A triggers **EXIT (ÇIKIŞ)** with live occupancy auto-calculation (Inside = In - Out).
 - 🧠 **Deep Learning Person Detection:** Powered by **YOLOv8** and **ByteTrack** for high-accuracy multi-object tracking across varying lighting conditions.
 - 📏 **Adult vs. Child Height Classification:** Calibrated pixel-height thresholding enables differentiated counting for children and adults with customized admission pricing.
-- 🚪 **Virtual Interactive Tripwire:** Interactive 2-point boundary line configurator directly on the live camera canvas, supporting directional tracking (inbound vs. outbound).
 - 💰 **Automated Revenue Accounting:** Real-time revenue accumulator multiplying verified crossings by customized tariffs with live register display.
 - 🌐 **Bilingual Support (EN / TR):** Clean English interface by default with a one-click toggle to Turkish.
 - 📱 **Local Wi-Fi Mobile Monitor (QR Code):** Scan a generated QR code from any smartphone on the local network to view zero-latency live streams, counters, and revenue stats in a mobile web dashboard.

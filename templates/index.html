@@ -37,22 +37,22 @@
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-emerald-500 selection:text-white">
 
     <!-- HEADER / NAVIGATION BAR -->
-    <header class="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <header class="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-900/30">
                 <i data-lucide="scan-face" class="w-6 h-6 text-white"></i>
             </div>
             <div>
                 <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                    <span data-i18n="app_title">People Counter & Revenue Tracker</span>
+                    <span data-i18n="app_title">Restroom People Counter & Revenue</span>
                     <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" data-i18n="badge_live">LIVE</span>
                 </h1>
-                <p class="text-xs text-slate-400" data-i18n="app_subtitle">AI Computer Vision (YOLOv8 + ByteTrack 24/7)</p>
+                <p class="text-xs text-slate-400" data-i18n="app_subtitle">AI Computer Vision (Dual Zone: Men & Women)</p>
             </div>
         </div>
 
         <!-- Right Header Controls -->
-        <div class="flex items-center flex-wrap gap-2.5">
+        <div class="flex items-center flex-wrap gap-2">
             <!-- Language Switcher -->
             <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
                 <i data-lucide="languages" class="w-4 h-4 text-emerald-400"></i>
@@ -78,7 +78,7 @@
             <!-- Mobile View (QR Code) -->
             <button onclick="openQrModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-md shadow-emerald-900/20 transition">
                 <i data-lucide="smartphone" class="w-4 h-4"></i>
-                <span data-i18n="mobile_view">Mobile View</span>
+                <span data-i18n="mobile_view">Mobile</span>
             </button>
 
             <!-- Settings -->
@@ -94,98 +94,169 @@
     </header>
 
     <!-- MAIN CONTENT -->
-    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-6">
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-5 space-y-5">
 
-        <!-- LIVE METRIC CARDS -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- LIVE METRIC CARDS (4 COLUMNS) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
-            <!-- Total Count -->
-            <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 lg:p-5 flex flex-col justify-between relative overflow-hidden">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" data-i18n="card_total">Total Entrances</span>
-                    <div class="p-2 rounded-xl bg-blue-500/10 text-blue-400">
-                        <i data-lucide="users" class="w-5 h-5"></i>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <div id="stat-total" class="text-3xl lg:text-4xl font-black text-white tracking-tight font-mono">0</div>
-                    <p class="text-xs text-slate-400 mt-1" data-i18n="card_total_desc">Total visitors counted today</p>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-blue-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
-            <!-- Adults Count -->
-            <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 lg:p-5 flex flex-col justify-between relative overflow-hidden">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" data-i18n="card_adults">Adults</span>
-                    <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
-                        <i data-lucide="user-check" class="w-5 h-5"></i>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <div id="stat-adults" class="text-3xl lg:text-4xl font-black text-emerald-400 tracking-tight font-mono">0</div>
-                    <p class="text-xs text-slate-400 mt-1" data-i18n="card_adults_desc">Standard paid admission</p>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
-            <!-- Children Count -->
-            <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 lg:p-5 flex flex-col justify-between relative overflow-hidden">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" data-i18n="card_children">Children</span>
-                    <div class="p-2 rounded-xl bg-amber-500/10 text-amber-400">
-                        <i data-lucide="baby" class="w-5 h-5"></i>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <div id="stat-children" class="text-3xl lg:text-4xl font-black text-amber-400 tracking-tight font-mono">0</div>
-                    <p id="stat-child-note" class="text-xs text-slate-400 mt-1" data-i18n="card_children_desc">Accompanied / child admissions</p>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
-            <!-- TOTAL REVENUE -->
-            <div class="bg-gradient-to-br from-emerald-950/70 to-slate-900 border border-emerald-500/30 rounded-2xl p-4 lg:p-5 flex flex-col justify-between relative overflow-hidden glow-green">
+            <!-- CARD 1: TOTAL REVENUE -->
+            <div class="bg-gradient-to-br from-emerald-950/80 to-slate-900 border border-emerald-500/40 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden glow-green">
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-bold uppercase tracking-wider text-emerald-400" data-i18n="card_revenue">Total Revenue</span>
                     <div class="p-2 rounded-xl bg-emerald-500/20 text-emerald-300">
                         <i data-lucide="wallet" class="w-5 h-5"></i>
                     </div>
                 </div>
-                <div class="mt-4">
+                <div class="mt-3">
                     <div class="flex items-baseline gap-1">
                         <div id="stat-revenue" class="text-3xl lg:text-4xl font-black text-white tracking-tight font-mono">0</div>
                         <span id="currency-symbol" class="text-xl font-bold text-emerald-400">$</span>
                     </div>
-                    <div class="flex items-center gap-2 mt-1">
-                        <span class="text-xs text-slate-300" data-i18n="rate_label">Rate:</span>
-                        <input id="input-quick-price" type="number" step="1" min="0" value="20" 
-                               onchange="updateQuickPrice(this.value)"
-                               class="w-14 bg-slate-800 border border-slate-600 rounded px-1.5 py-0.5 text-xs text-white text-center font-bold focus:ring-1 focus:ring-emerald-500 focus:outline-none">
-                        <span class="text-xs text-slate-400" data-i18n="currency_unit">$</span>
+                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-emerald-900/40 text-xs">
+                        <span class="text-slate-400"><span data-i18n="rate_label">Rate:</span></span>
+                        <div class="flex items-center gap-1">
+                            <input id="input-quick-price" type="number" step="1" min="0" value="20" 
+                                   onchange="updateQuickPrice(this.value)"
+                                   class="w-14 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white text-center font-bold focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                            <span class="text-slate-400" id="currency-unit-label">$</span>
+                        </div>
                     </div>
                 </div>
-                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+            </div>
+
+            <!-- CARD 2: MEN'S RESTROOM -->
+            <div class="bg-slate-900/90 border border-sky-500/30 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="p-1.5 rounded-lg bg-sky-500/20 text-sky-400">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-sky-400" data-i18n="card_men_title">Men's Restroom</span>
+                    </div>
+                    <span id="badge-men-inside" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                        <span data-i18n="inside_label">Inside:</span> <span id="stat-men-inside">0</span>
+                    </span>
+                </div>
+                <div class="mt-3">
+                    <div class="flex items-baseline justify-between">
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block" data-i18n="inbound_label">Total In</span>
+                            <div id="stat-men-in" class="text-3xl font-black text-white tracking-tight font-mono">0</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block" data-i18n="outbound_label">Out</span>
+                            <div id="stat-men-out" class="text-xl font-bold text-slate-300 font-mono">0</div>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                        <span data-i18n="zone_revenue">Revenue:</span>
+                        <span class="font-bold text-sky-400 font-mono"><span id="stat-men-revenue">0</span> <span class="curr-sub">$</span></span>
+                    </div>
+                </div>
+                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-sky-500/5 rounded-full blur-xl pointer-events-none"></div>
+            </div>
+
+            <!-- CARD 3: WOMEN'S RESTROOM -->
+            <div class="bg-slate-900/90 border border-pink-500/30 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="p-1.5 rounded-lg bg-pink-500/20 text-pink-400">
+                            <i data-lucide="user-check" class="w-4 h-4"></i>
+                        </div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-pink-400" data-i18n="card_women_title">Women's Restroom</span>
+                    </div>
+                    <span id="badge-women-inside" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                        <span data-i18n="inside_label">Inside:</span> <span id="stat-women-inside">0</span>
+                    </span>
+                </div>
+                <div class="mt-3">
+                    <div class="flex items-baseline justify-between">
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block" data-i18n="inbound_label">Total In</span>
+                            <div id="stat-women-in" class="text-3xl font-black text-white tracking-tight font-mono">0</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block" data-i18n="outbound_label">Out</span>
+                            <div id="stat-women-out" class="text-xl font-bold text-slate-300 font-mono">0</div>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                        <span data-i18n="zone_revenue">Revenue:</span>
+                        <span class="font-bold text-pink-400 font-mono"><span id="stat-women-revenue">0</span> <span class="curr-sub">$</span></span>
+                    </div>
+                </div>
+                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-pink-500/5 rounded-full blur-xl pointer-events-none"></div>
+            </div>
+
+            <!-- CARD 4: OVERALL TOTAL & ADULT/CHILD -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" data-i18n="card_total">Overall Entrances</span>
+                    <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400">
+                        <i data-lucide="users" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="flex items-baseline justify-between">
+                        <div>
+                            <div id="stat-total" class="text-3xl lg:text-4xl font-black text-white tracking-tight font-mono">0</div>
+                            <span class="text-[11px] text-slate-400" data-i18n="card_total_desc">Total visitors today</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-400 block"><span data-i18n="inside_label">Inside:</span></span>
+                            <span id="stat-total-inside" class="text-lg font-bold text-emerald-400 font-mono">0</span>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                        <span><span data-i18n="card_adults_short">Adults:</span> <strong id="stat-adults" class="text-slate-200 font-mono">0</strong></span>
+                        <span><span data-i18n="card_children_short">Children:</span> <strong id="stat-children" class="text-amber-400 font-mono">0</strong></span>
+                    </div>
+                </div>
+                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-indigo-500/5 rounded-full blur-xl pointer-events-none"></div>
             </div>
 
         </div>
 
         <!-- CENTER SECTION: LIVE VIDEO & TRIPWIRE -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-            <!-- LEFT / CENTER (2 Cols): LIVE STREAM -->
+            <!-- LEFT / CENTER (2 Cols): LIVE STREAM WITH DUAL-LINE SELECTOR -->
             <div class="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col">
-                <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-800/80">
+                <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-800/80 flex-wrap gap-2">
                     <div class="flex items-center gap-2">
                         <i data-lucide="video" class="w-5 h-5 text-emerald-400"></i>
-                        <span class="font-bold text-sm text-slate-200" data-i18n="video_panel_title">Live Vision Stream & Virtual Tripwire</span>
+                        <span class="font-bold text-sm text-slate-200" data-i18n="video_panel_title">Live Vision Stream & Dual Tripwire Config</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button id="btn-draw-line" onclick="toggleLineDrawing()" class="px-3 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
-                            <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-                            <span id="txt-draw-line" data-i18n="btn_edit_tripwire">Edit Tripwire</span>
+                        <button id="btn-draw-line" onclick="toggleLineDrawing()" class="px-3 py-1.5 text-xs rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold flex items-center gap-1.5 shadow transition">
+                            <i data-lucide="pencil-ruler" class="w-3.5 h-3.5"></i>
+                            <span id="txt-draw-line" data-i18n="btn_edit_tripwire">Edit Tripwires (2+2)</span>
                         </button>
                     </div>
+                </div>
+
+                <!-- LINE SELECTION TOOLBAR (Visible during editing) -->
+                <div id="line-edit-toolbar" class="hidden mb-3 p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center flex-wrap gap-1.5">
+                        <span class="text-[11px] font-bold text-slate-400 mr-1" data-i18n="select_line_label">Draw Line:</span>
+                        <button onclick="selectDrawingTarget('men', 'line_a')" id="btn-target-men-a" class="line-target-btn px-2.5 py-1 rounded-md text-xs font-bold border transition bg-sky-500/20 text-sky-300 border-sky-400 ring-2 ring-sky-400/40">
+                            🚹 Men A (Outer)
+                        </button>
+                        <button onclick="selectDrawingTarget('men', 'line_b')" id="btn-target-men-b" class="line-target-btn px-2.5 py-1 rounded-md text-xs font-bold border transition bg-slate-900 text-slate-400 border-slate-700">
+                            🚹 Men B (Inner)
+                        </button>
+                        <button onclick="selectDrawingTarget('women', 'line_a')" id="btn-target-women-a" class="line-target-btn px-2.5 py-1 rounded-md text-xs font-bold border transition bg-slate-900 text-slate-400 border-slate-700">
+                            🚺 Women A (Outer)
+                        </button>
+                        <button onclick="selectDrawingTarget('women', 'line_b')" id="btn-target-women-b" class="line-target-btn px-2.5 py-1 rounded-md text-xs font-bold border transition bg-slate-900 text-slate-400 border-slate-700">
+                            🚺 Women B (Inner)
+                        </button>
+                    </div>
+                    <button onclick="resetTripwirePresets()" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1 transition">
+                        <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                        <span data-i18n="btn_preset_default">Default Layout</span>
+                    </button>
                 </div>
 
                 <!-- Video Frame and Overlay Canvas -->
@@ -198,32 +269,33 @@
                     <!-- Drawing Banner -->
                     <div id="draw-helper-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-amber-500/95 text-slate-950 font-bold text-xs px-4 py-2 rounded-full shadow-lg flex items-center gap-2 z-20">
                         <i data-lucide="info" class="w-4 h-4"></i>
-                        <span data-i18n="draw_banner_hint">Click 2 points on the camera canvas to set the entrance line (Start & End)</span>
+                        <span id="txt-draw-banner-hint" data-i18n="draw_banner_hint">Click 2 points on the camera canvas (Point 1: Start, Point 2: End)</span>
                     </div>
                 </div>
 
-                <!-- Bottom Camera Status Bar -->
+                <!-- Bottom Camera Status Bar / Legend -->
                 <div class="mt-3 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
-                    <div class="flex items-center gap-3">
-                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span> <span data-i18n="legend_adult">Adult (Blue)</span></span>
-                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-500 inline-block"></span> <span data-i18n="legend_child">Child (Yellow)</span></span>
-                        <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-yellow-400 inline-block"></span> <span data-i18n="legend_tripwire">Tripwire</span></span>
+                    <div class="flex items-center flex-wrap gap-3">
+                        <span class="flex items-center gap-1"><span class="w-3 h-1 bg-sky-400 inline-block rounded"></span> <span data-i18n="legend_men">Men (A: Out -> B: In)</span></span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-1 bg-pink-400 inline-block rounded"></span> <span data-i18n="legend_women">Women (A: Out -> B: In)</span></span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span> <span data-i18n="legend_in">Green Flash = IN</span></span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-500 inline-block"></span> <span data-i18n="legend_out">Orange Flash = OUT</span></span>
                     </div>
                     <div class="text-slate-500">
-                        <span data-i18n="direction_text">Entrance Direction:</span> <span id="lbl-direction" class="font-bold text-slate-300">DOWN</span>
+                        <span data-i18n="logic_note">Line A to Line B = Entry | Line B to Line A = Exit</span>
                     </div>
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN (1 Col): HOURLY CHART & RECENT ACTIVITY -->
-            <div class="space-y-6">
+            <!-- RIGHT COLUMN (1 Col): HOURLY TRAFFIC CHART & RECENT ACTIVITY -->
+            <div class="space-y-5">
 
                 <!-- Hourly Chart -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
-                    <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
                             <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-400"></i>
-                            <span class="font-bold text-sm text-slate-200" data-i18n="chart_title">Today's Hourly Traffic</span>
+                            <span class="font-bold text-sm text-slate-200" data-i18n="chart_title">Hourly Traffic Distribution</span>
                         </div>
                     </div>
                     <div class="h-44 w-full">
@@ -231,17 +303,17 @@
                     </div>
                 </div>
 
-                <!-- Activity Feed -->
+                <!-- Recent Activity Feed -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-2">
                             <i data-lucide="history" class="w-4 h-4 text-blue-400"></i>
-                            <span class="font-bold text-sm text-slate-200" data-i18n="activity_title">Recent Activity</span>
+                            <span class="font-bold text-sm text-slate-200" data-i18n="activity_title">Recent Restroom Crossings</span>
                         </div>
-                        <span class="text-xs text-slate-500" id="txt-last-event-time" data-i18n="activity_live">Real-time</span>
+                        <span class="text-xs text-slate-500" id="txt-last-event-time" data-i18n="activity_live">Live</span>
                     </div>
-                    <div id="recent-entrances-list" class="space-y-2 max-h-56 overflow-y-auto pr-1 text-xs">
-                        <div class="text-slate-500 text-center py-4" data-i18n="no_activity">No entrances detected yet.</div>
+                    <div id="recent-entrances-list" class="space-y-2 max-h-60 overflow-y-auto pr-1 text-xs">
+                        <div class="text-slate-500 text-center py-4" data-i18n="no_activity">No crossings detected yet.</div>
                     </div>
                 </div>
 
@@ -344,7 +416,7 @@
                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-mono text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                            placeholder="rtsp://admin:pass@192.168.1.64:554/Streaming/Channels/102 or 0">
                     <div class="flex items-center justify-between mt-1 text-[11px] text-slate-500">
-                        <span data-i18n="webcam_hint">Enter <code class="text-slate-300">0</code> to test with local USB webcam.</span>
+                        <span data-i18n="webcam_hint">Enter 0 to test with local USB webcam.</span>
                         <button type="button" onclick="document.getElementById('set-camera-source').value = '0'" class="text-emerald-400 hover:underline" data-i18n="btn_use_webcam">Use Webcam (0)</button>
                     </div>
                 </div>
@@ -363,48 +435,41 @@
                     </div>
                 </div>
 
-                <!-- Charge Children Option -->
-                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                <!-- Charge Children Toggle -->
+                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
                     <div>
-                        <div class="font-semibold text-slate-200" data-i18n="charge_children_title">Charge Admission for Children</div>
-                        <div class="text-[11px] text-slate-400" data-i18n="charge_children_desc">If unchecked, children are counted but added as free entries.</div>
+                        <span class="font-semibold text-slate-200 block" data-i18n="charge_children_title">Charge Admission for Children</span>
+                        <span class="text-[11px] text-slate-400" data-i18n="charge_children_desc">If unchecked, children are counted but added as free entries.</span>
                     </div>
-                    <input id="set-charge-children" type="checkbox" class="w-5 h-5 accent-emerald-500 rounded cursor-pointer">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input id="set-charge-children" type="checkbox" class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
                 </div>
 
                 <!-- Child Height Threshold -->
                 <div class="pt-2 border-t border-slate-800">
-                    <div class="flex justify-between items-center mb-1">
+                    <div class="flex items-center justify-between mb-1">
                         <label class="font-semibold text-slate-300" data-i18n="height_threshold_label">Child vs Adult Height Threshold (Pixels)</label>
                         <span id="val-height-threshold" class="font-mono text-emerald-400 font-bold">160 px</span>
                     </div>
-                    <input id="set-height-threshold" type="range" min="80" max="350" step="5" value="160"
+                    <input id="set-height-threshold" type="range" min="80" max="350" value="160" 
                            oninput="document.getElementById('val-height-threshold').innerText = this.value + ' px'"
                            class="w-full accent-emerald-500 cursor-pointer">
-                    <p class="text-slate-500 text-[11px] mt-1" data-i18n="height_threshold_desc">Detection boxes below this pixel height are automatically classified as children.</p>
+                    <p class="text-[11px] text-slate-500 mt-1" data-i18n="height_threshold_desc">Detection boxes below this pixel height are automatically classified as children.</p>
                 </div>
 
-                <!-- Entrance Direction -->
-                <div class="pt-2 border-t border-slate-800">
-                    <label class="block font-semibold text-slate-300 mb-1" data-i18n="direction_select_label">Entrance Direction</label>
-                    <select id="set-direction" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:ring-1 focus:ring-emerald-500 focus:outline-none">
-                        <option value="down" data-i18n="dir_down">Top to Bottom (Recommended)</option>
-                        <option value="up" data-i18n="dir_up">Bottom to Top</option>
-                        <option value="right" data-i18n="dir_right">Left to Right</option>
-                        <option value="left" data-i18n="dir_left">Right to Left</option>
-                    </select>
-                </div>
-
-                <!-- Action Buttons -->
+                <!-- Actions -->
                 <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
-                    <button type="button" onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" data-i18n="btn_cancel">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-lg shadow-emerald-900/20" data-i18n="btn_save_settings">Save Settings</button>
+                    <button type="button" onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition" data-i18n="btn_cancel">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-lg shadow-emerald-900/30" data-i18n="btn_save_settings">Save Settings</button>
                 </div>
+
             </form>
         </div>
     </div>
 
-    <!-- MODAL 3: GOOGLE DRIVE / SHEETS SYNC -->
+    <!-- MODAL 3: GOOGLE SHEETS SYNC -->
     <div id="modal-google" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full relative shadow-2xl">
             <button onclick="closeGoogleModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
@@ -413,7 +478,7 @@
 
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                    <i data-lucide="cloud" class="w-5 h-5"></i>
+                    <i data-lucide="sheet" class="w-5 h-5"></i>
                 </div>
                 <div>
                     <h3 class="text-base font-bold text-white" data-i18n="google_modal_title">Google Sheets / Cloud Sync</h3>
@@ -422,78 +487,85 @@
             </div>
 
             <div class="space-y-4 text-xs">
-                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                    <div class="font-bold text-slate-200 flex items-center gap-1.5">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-slate-300 space-y-1.5">
+                    <p class="font-bold text-white flex items-center gap-1.5">
+                        <i data-lucide="help-circle" class="w-4 h-4 text-emerald-400"></i>
                         <span data-i18n="google_how_it_works">How It Works</span>
-                    </div>
-                    <p class="text-slate-400 leading-relaxed" data-i18n="google_how_desc">
+                    </p>
+                    <p class="text-[11px] text-slate-400 leading-relaxed" data-i18n="google_how_desc">
                         Every crossing event and hourly turnover is logged in real-time to your Google Spreadsheet via Webhook API. You can monitor your facility numbers from anywhere in the world.
                     </p>
                 </div>
 
                 <div>
                     <label class="block font-semibold text-slate-300 mb-1" data-i18n="google_webhook_label">Google Apps Script Webhook URL</label>
-                    <input id="set-google-webhook" type="text"
-                           placeholder="https://script.google.com/macros/s/.../exec"
-                           class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                    <input id="set-google-webhook" type="text" 
+                           class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-mono text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                           placeholder="https://script.google.com/macros/s/.../exec">
                 </div>
 
                 <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
                     <div>
-                        <div class="font-semibold text-slate-200" data-i18n="google_enabled_label">Google Sync Active</div>
-                        <div class="text-[11px] text-slate-400" data-i18n="google_enabled_desc">Transmit live data to cloud spreadsheet</div>
+                        <span class="font-semibold text-slate-200 block" data-i18n="google_enabled_label">Google Sync Active</span>
+                        <span class="text-[11px] text-slate-400" data-i18n="google_enabled_desc">Transmit live data to cloud spreadsheet</span>
                     </div>
-                    <input id="set-google-enabled" type="checkbox" class="w-5 h-5 accent-emerald-500 rounded cursor-pointer">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input id="set-google-enabled" type="checkbox" class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
                 </div>
 
                 <div class="flex items-center justify-between pt-2">
-                    <button onclick="testGoogleSync()" type="button" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5">
-                        <i data-lucide="send" class="w-3.5 h-3.5 text-emerald-400"></i>
-                        <span data-i18n="btn_test_sync">Send Test Data</span>
-                    </button>
-                    <button onclick="saveGoogleSettings()" type="button" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition" data-i18n="btn_save">Save</button>
+                    <button type="button" onclick="testGoogleSync()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition" data-i18n="btn_test_sync">Send Test Data</button>
+                    <button type="button" onclick="saveGoogleSettings()" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition" data-i18n="btn_save">Save</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- I18N AND JAVASCRIPT ENGINE -->
+    <!-- JAVASCRIPT APP LOGIC -->
     <script>
-        // Internationalization (i18n) Translations
+        // Internationalization (i18n) Dictionary
         const i18n = {
             en: {
-                doc_title: "AI Camera People Counter & Revenue Tracker",
-                app_title: "People Counter & Revenue Tracker",
+                doc_title: "AI Restroom People Counter & Revenue Tracker",
+                app_title: "Restroom People Counter & Revenue",
                 badge_live: "LIVE",
-                app_subtitle: "AI Computer Vision (YOLOv8 + ByteTrack 24/7)",
+                app_subtitle: "AI Computer Vision (Dual Zone: Men & Women)",
                 cam_connecting: "Camera: Connecting...",
                 cam_live: "Camera Live",
                 cam_offline: "Camera Offline",
                 cloud_sync: "Cloud Sync",
-                mobile_view: "Mobile View",
-                card_total: "Total Entrances",
-                card_total_desc: "Total visitors counted today",
-                card_adults: "Adults",
-                card_adults_desc: "Standard paid admission",
-                card_children: "Children",
-                card_children_desc: "Accompanied / child admissions",
+                mobile_view: "Mobile",
                 card_revenue: "Total Revenue",
                 rate_label: "Rate:",
-                currency_unit: "$",
-                video_panel_title: "Live Vision Stream & Virtual Tripwire",
-                btn_edit_tripwire: "Edit Tripwire",
-                btn_cancel_drawing: "Cancel Drawing",
-                draw_banner_hint: "Click 2 points on the camera canvas to set the entrance line (Start & End)",
-                legend_adult: "Adult (Blue)",
-                legend_child: "Child (Yellow)",
-                legend_tripwire: "Tripwire",
-                direction_text: "Entrance Direction:",
-                chart_title: "Today's Hourly Traffic",
-                chart_dataset: "Entrances",
-                activity_title: "Recent Activity",
-                activity_live: "Real-time",
-                no_activity: "No entrances detected yet.",
+                card_men_title: "Men's Restroom",
+                card_women_title: "Women's Restroom",
+                card_total: "Overall Entrances",
+                card_total_desc: "Total visitors today",
+                card_adults_short: "Adults",
+                card_children_short: "Children",
+                inside_label: "Inside:",
+                inbound_label: "Total In",
+                outbound_label: "Out",
+                zone_revenue: "Revenue:",
+                video_panel_title: "Live Vision Stream & Dual Tripwire Config",
+                btn_edit_tripwire: "Edit Tripwires (2+2)",
+                btn_cancel_drawing: "Done / Close Editor",
+                select_line_label: "Select Line to Draw:",
+                btn_preset_default: "Default Layout",
+                draw_banner_hint: "Click 2 points on the camera canvas (Point 1: Start, Point 2: End)",
+                legend_men: "Men (A: Out -> B: In)",
+                legend_women: "Women (A: Out -> B: In)",
+                legend_in: "Green Flash = IN",
+                legend_out: "Orange Flash = OUT",
+                logic_note: "Line A to Line B = Entry | Line B to Line A = Exit",
+                chart_title: "Hourly Traffic Distribution",
+                chart_men: "Men",
+                chart_women: "Women",
+                activity_title: "Recent Restroom Crossings",
+                activity_live: "Live",
+                no_activity: "No crossings detected yet.",
                 modal_qr_title: "Watch Live on Mobile",
                 modal_qr_desc: "Scan this QR code with your smartphone on the same local Wi-Fi network:",
                 modal_qr_footer: "Monitor live stream and revenue figures from your smartphone browser anytime.",
@@ -514,11 +586,6 @@
                 charge_children_desc: "If unchecked, children are counted but added as free entries.",
                 height_threshold_label: "Child vs Adult Height Threshold (Pixels)",
                 height_threshold_desc: "Detection boxes below this pixel height are automatically classified as children.",
-                direction_select_label: "Entrance Direction",
-                dir_down: "Top to Bottom (Recommended)",
-                dir_up: "Bottom to Top",
-                dir_right: "Left to Right",
-                dir_left: "Right to Left",
                 btn_cancel: "Cancel",
                 btn_save_settings: "Save Settings",
                 google_modal_title: "Google Sheets / Cloud Sync",
@@ -531,86 +598,96 @@
                 btn_test_sync: "Send Test Data",
                 btn_save: "Save",
                 confirm_reset: "Are you sure you want to reset today's counters?",
-                tripwire_updated: "Virtual tripwire line updated successfully!",
+                tripwire_updated: "Tripwire updated successfully!",
                 badge_adult: "Adult",
-                badge_child: "Child"
+                badge_child: "Child",
+                badge_men: "Men",
+                badge_women: "Women",
+                dir_in: "IN",
+                dir_out: "OUT"
             },
             tr: {
-                doc_title: "Kamera Kişi Sayacı & Gelir Takip Sistemi",
-                app_title: "Kişi Sayacı & Ciro Takip Sistemi",
+                doc_title: "Yapay Zeka Tuvalet Kişi Sayacı & Gelir Takip Sistemi",
+                app_title: "Tuvalet Kişi Sayacı & Ciro Takip",
                 badge_live: "CANLI",
-                app_subtitle: "Yapay Zeka Görüşü (YOLOv8 + ByteTrack 7/24 Kesintisiz)",
+                app_subtitle: "Yapay Zeka Görüşü (Kadın & Erkek Çift Hat 7/24)",
                 cam_connecting: "Kamera: Bağlanıyor...",
                 cam_live: "Kamera Canlı",
                 cam_offline: "Kamera Çevrimdışı",
                 cloud_sync: "Bulut Senkron",
                 mobile_view: "Telefonda Aç",
-                card_total: "Toplam Giriş",
-                card_total_desc: "Bugün giriş yapan toplam kişi",
-                card_adults: "Yetişkin Sayısı",
-                card_adults_desc: "Ücretli standart giriş",
-                card_children: "Çocuk Sayısı",
-                card_children_desc: "Eşlik eden / çocuk girişleri",
-                card_revenue: "Tahsil Edilen Ciro",
+                card_revenue: "Toplam Ciro",
                 rate_label: "Tarife:",
-                currency_unit: "TL",
-                video_panel_title: "Kamera Canlı Takip & Sanal Çizgi",
-                btn_edit_tripwire: "Kapı Çizgisini Düzenle",
-                btn_cancel_drawing: "Çizimi İptal Et",
-                draw_banner_hint: "Kapı eşiğini belirlemek için ekranda 2 noktaya tıklayın (Başlangıç ve Bitiş)",
-                legend_adult: "Yetişkin (Mavi)",
-                legend_child: "Çocuk (Sarı)",
-                legend_tripwire: "Geçiş Çizgisi",
-                direction_text: "Giriş Yönü:",
-                chart_title: "Bugünkü Saatlik Yoğunluk",
-                chart_dataset: "Girişler",
-                activity_title: "Son Geçişler",
+                card_men_title: "Erkekler Tuvaleti",
+                card_women_title: "Kadınlar Tuvaleti",
+                card_total: "Genel Toplam Giriş",
+                card_total_desc: "Bugün giriş yapan toplam kişi",
+                card_adults_short: "Yetişkin",
+                card_children_short: "Çocuk",
+                inside_label: "İçeride:",
+                inbound_label: "Toplam Giriş",
+                outbound_label: "Çıkış",
+                zone_revenue: "Ciro:",
+                video_panel_title: "Kamera Canlı Takip & Çift Geçiş Çizgisi",
+                btn_edit_tripwire: "Çizgileri Düzenle (2+2)",
+                btn_cancel_drawing: "Tamamla / Çık",
+                select_line_label: "Çizilecek Çizgi:",
+                btn_preset_default: "Varsayılan Yerleşim",
+                draw_banner_hint: "Çizgi için kamerada 2 noktaya tıklayın (Başlangıç ve Bitiş)",
+                legend_men: "Erkekler (A: Dış -> B: İç)",
+                legend_women: "Kadınlar (A: Dış -> B: İç)",
+                legend_in: "Yeşil Flaş = GİRİŞ",
+                legend_out: "Turuncu Flaş = ÇIKIŞ",
+                logic_note: "Çizgi A'dan B'ye = Giriş | Çizgi B'den A'ya = Çıkış",
+                chart_title: "Saatlik Ziyaret Dağılımı",
+                chart_men: "Erkekler",
+                chart_women: "Kadınlar",
+                activity_title: "Son Geçiş Hareketleri",
                 activity_live: "Anlık",
                 no_activity: "Henüz geçiş tespit edilmedi.",
                 modal_qr_title: "Telefondan Canlı İzleyin",
-                modal_qr_desc: "Piknik alanındaki Wi-Fi ağına bağlı telefonunuzla kamerayı bu QR koda tutun:",
-                modal_qr_footer: "Telefonunuzdan istediğiniz zaman canlı görüntüyü ve kasayı takip edebilirsiniz.",
+                modal_qr_desc: "Wi-Fi ağına bağlı telefonunuzla bu QR kodu taratın:",
+                modal_qr_footer: "Telefonunuzdan canlı görüntüyü ve kasayı anlık takip edebilirsiniz.",
                 settings_title: "Sistem & Kamera Ayarları",
-                settings_subtitle: "Hikvision kamera bağlantısı ve ücret kuralları",
+                settings_subtitle: "Kamera bağlantısı ve tarife kuralları",
                 nvr_helper_title: "Hikvision Kayıt Cihazı (NVR/DVR)",
                 nvr_quick_setup: "Kolay Kurulum",
                 nvr_ip_label: "Cihaz IP Adresi",
                 nvr_user_label: "Kullanıcı Adı",
                 nvr_pass_label: "Kamera Şifresi",
-                nvr_select_channel: "Tuvaleti Gösteren Kamerayı Seçin (1 - 8):",
-                rtsp_url_label: "Oluşturulan RTSP Adresi veya Özel Kaynak",
-                webcam_hint: "Bilgisayar kamerasını denemek için 0 yazabilirsiniz.",
-                btn_use_webcam: "Webcam Testi Yap (0)",
-                price_adult_label: "Yetişkin Giriş Ücreti",
-                price_child_label: "Çocuk Giriş Ücreti",
+                nvr_select_channel: "Tuvaleti Gösteren Kanal (1 - 8):",
+                rtsp_url_label: "Kamera Kaynağı (RTSP veya Aygıt No)",
+                webcam_hint: "Bilgisayar webcam için 0 yazabilirsiniz.",
+                btn_use_webcam: "Webcam Kullan (0)",
+                price_adult_label: "Yetişkin Ücreti",
+                price_child_label: "Çocuk Ücreti",
                 charge_children_title: "Çocuklardan da Ücret Alınsın",
-                charge_children_desc: "Kapalıysa çocuk girişleri sadece sayılır, kasaya para eklenmez.",
-                height_threshold_label: "Çocuk / Yetişkin Boyut Eşiği (Piksel)",
-                height_threshold_desc: "Tespit kutusu boyu bu değerin altında kalan kişiler otomatik çocuk olarak sınıflandırılır.",
-                direction_select_label: "İçeri Giriş Yönü",
-                dir_down: "Yukarıdan Aşağıya Doğru (Önerilen)",
-                dir_up: "Aşağıdan Yukarıya Doğru",
-                dir_right: "Soldan Sağa Doğru",
-                dir_left: "Sağdan Sola Doğru",
+                charge_children_desc: "Kapalıysa çocuk girişleri kasaya para eklemez, sadece sayılır.",
+                height_threshold_label: "Çocuk / Yetişkin Boyut Sınırı (Piksel)",
+                height_threshold_desc: "Tespit boyutu bu değerin altındakiler çocuk kabul edilir.",
                 btn_cancel: "İptal",
                 btn_save_settings: "Ayarları Kaydet",
                 google_modal_title: "Google Drive / E-Tablo Canlı Senkronizasyon",
-                google_modal_subtitle: "Verileri her an cep telefonunuzdaki Google Drive uygulamasında görün",
+                google_modal_subtitle: "Verileri anlık Google E-Tabloya aktarın",
                 google_how_it_works: "Nasıl Çalışır?",
-                google_how_desc: "Google Drive'ınızda açacağınız bir E-Tabloya sistem her girişte ve periyodik olarak canlı kişi sayısını ve ciroyu işler. Dünyanın her yerinden cep telefonunuzdan kasayı anlık takip edebilirsiniz.",
+                google_how_desc: "Tüm geçişler ve anlık doluluk Google E-Tablonuza otomatik kaydedilir. Telefonunuzdaki Google Drive uygulamasından kasayı dilediğiniz yerden takip edebilirsiniz.",
                 google_webhook_label: "Google Apps Script Webhook URL",
                 google_enabled_label: "Google Senkronizasyonu Aktif",
-                google_enabled_desc: "Veriler anlık olarak Google Drive'a gönderilsin",
-                btn_test_sync: "Test Verisi Gönder",
+                google_enabled_desc: "Veriler buluta anlık gönderilsin",
+                btn_test_sync: "Test Gönder",
                 btn_save: "Kaydet",
-                confirm_reset: "Bugünün giriş sayaçlarını sıfırlamak istediğinize emin misiniz?",
-                tripwire_updated: "Kapı geçiş çizgisi başarıyla güncellendi!",
+                confirm_reset: "Bugünün sayaçlarını sıfırlamak istediğinize emin misiniz?",
+                tripwire_updated: "Çizgi koordinatları güncellendi!",
                 badge_adult: "Yetişkin",
-                badge_child: "Çocuk"
+                badge_child: "Çocuk",
+                badge_men: "Erkek",
+                badge_women: "Kadın",
+                dir_in: "GİRİŞ",
+                dir_out: "ÇIKIŞ"
             }
         };
 
-        // Active Language (DEFAULT IS ENGLISH: 'en')
+        // Active Language (DEFAULT: 'en')
         let currentLang = localStorage.getItem('app_lang') || 'en';
 
         function switchLanguage(lang) {
@@ -633,9 +710,12 @@
             // Update currency symbol
             const curr = lang === 'tr' ? '₺' : '$';
             document.getElementById('currency-symbol').innerText = curr;
+            document.getElementById('currency-unit-label').innerText = curr;
+            document.querySelectorAll('.curr-sub').forEach(el => el.innerText = curr);
 
             if (hourlyChart) {
-                hourlyChart.data.datasets[0].label = t.chart_dataset;
+                hourlyChart.data.datasets[0].label = t.chart_men;
+                hourlyChart.data.datasets[1].label = t.chart_women;
                 hourlyChart.update('none');
             }
         }
@@ -646,24 +726,23 @@
         let currentConfig = {};
         let hourlyChart = null;
         let isDrawingMode = false;
+        let currentTargetZone = "men";
+        let currentTargetLine = "line_a";
         let lineClicks = [];
 
         document.addEventListener("DOMContentLoaded", () => {
-            // Apply language first
             switchLanguage(currentLang);
-
             initChart();
             loadSettings();
             fetchStats();
             fetchHistory();
             fetchMobileUrl();
 
-            // Periodic updates
-            setInterval(fetchStats, 1500);
-            setInterval(fetchHistory, 10000);
+            setInterval(fetchStats, 1200);
+            setInterval(fetchHistory, 8000);
         });
 
-        // Initialize Chart.js
+        // Initialize Dual-Dataset Chart.js (Men vs Women)
         function initChart() {
             const ctx = document.getElementById('hourlyChart').getContext('2d');
             const t = i18n[currentLang] || i18n.en;
@@ -671,19 +750,36 @@
                 type: 'bar',
                 data: {
                     labels: ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'],
-                    datasets: [{
-                        label: t.chart_dataset,
-                        data: [0, 0, 0, 0, 0, 0, 0],
-                        backgroundColor: '#10b981',
-                        borderRadius: 6,
-                        barPercentage: 0.6
-                    }]
+                    datasets: [
+                        {
+                            label: t.chart_men,
+                            data: [0, 0, 0, 0, 0, 0, 0],
+                            backgroundColor: '#0284c7', // Sky Blue
+                            borderRadius: 4,
+                            barPercentage: 0.7
+                        },
+                        {
+                            label: t.chart_women,
+                            data: [0, 0, 0, 0, 0, 0, 0],
+                            backgroundColor: '#db2777', // Pink/Rose
+                            borderRadius: 4,
+                            barPercentage: 0.7
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false }
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#94a3b8',
+                                boxWidth: 10,
+                                font: { size: 10 }
+                            }
+                        }
                     },
                     scales: {
                         x: {
@@ -708,11 +804,28 @@
                 const data = await res.json();
                 const t = i18n[currentLang] || i18n.en;
 
-                document.getElementById('stat-total').innerText = data.total_count;
-                document.getElementById('stat-adults').innerText = data.adult_count;
-                document.getElementById('stat-children').innerText = data.child_count;
-                document.getElementById('stat-revenue').innerText = Number(data.total_revenue).toLocaleString();
+                // Overall stats
+                document.getElementById('stat-total').innerText = data.total_count || 0;
+                document.getElementById('stat-total-inside').innerText = data.total_inside || 0;
+                document.getElementById('stat-adults').innerText = data.adult_count || 0;
+                document.getElementById('stat-children').innerText = data.child_count || 0;
+                document.getElementById('stat-revenue').innerText = Number(data.total_revenue || 0).toLocaleString();
 
+                // Men stats
+                const men = data.men || {};
+                document.getElementById('stat-men-in').innerText = men.in || 0;
+                document.getElementById('stat-men-out').innerText = men.out || 0;
+                document.getElementById('stat-men-inside').innerText = men.inside || 0;
+                document.getElementById('stat-men-revenue').innerText = Number(men.revenue || 0).toLocaleString();
+
+                // Women stats
+                const women = data.women || {};
+                document.getElementById('stat-women-in').innerText = women.in || 0;
+                document.getElementById('stat-women-out').innerText = women.out || 0;
+                document.getElementById('stat-women-inside').innerText = women.inside || 0;
+                document.getElementById('stat-women-revenue').innerText = Number(women.revenue || 0).toLocaleString();
+
+                // Camera status
                 const camBadge = document.getElementById('badge-camera');
                 const txtStatus = document.getElementById('txt-camera-status');
                 const txtFps = document.getElementById('txt-camera-fps');
@@ -729,6 +842,7 @@
                     camBadge.classList.add('border-rose-800', 'text-rose-400');
                 }
 
+                // Cloud sync badge
                 const googleTxt = document.getElementById('txt-google-status');
                 if (data.google_sync && data.google_sync.enabled) {
                     googleTxt.innerText = data.google_sync.last_sync ? 'Cloud: ' + data.google_sync.last_sync : 'Cloud: Active';
@@ -752,28 +866,45 @@
                 if (hourlyChart && data.hourly) {
                     const filtered = data.hourly.filter(h => {
                         const hr = parseInt(h.hour);
-                        return hr >= 8 && hr <= 22;
+                        return hr >= 7 && hr <= 23;
                     });
                     hourlyChart.data.labels = filtered.map(h => h.hour);
-                    hourlyChart.data.datasets[0].data = filtered.map(h => h.total);
+                    hourlyChart.data.datasets[0].data = filtered.map(h => h.men_in || 0);
+                    hourlyChart.data.datasets[1].data = filtered.map(h => h.women_in || 0);
                     hourlyChart.update('none');
                 }
 
                 const listEl = document.getElementById('recent-entrances-list');
                 if (data.recent && data.recent.length > 0) {
-                    const curr = currentLang === 'tr' ? 'TL' : '$';
+                    const curr = currentLang === 'tr' ? '₺' : '$';
                     listEl.innerHTML = data.recent.map(item => {
+                        const isMen = item.zone === 'men';
+                        const zoneBadge = isMen
+                            ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">🚹 ' + t.badge_men + '</span>'
+                            : '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30">🚺 ' + t.badge_women + '</span>';
+
+                        const isEntry = item.direction === 'in';
+                        const dirBadge = isEntry
+                            ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">' + t.dir_in + '</span>'
+                            : '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">' + t.dir_out + '</span>';
+
                         const isChild = item.person_type === 'child';
-                        const badgeColor = isChild ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-                        const label = isChild ? t.badge_child : t.badge_adult;
+                        const typeLabel = isChild ? t.badge_child : t.badge_adult;
                         const timeOnly = item.timestamp.split(' ')[1] || item.timestamp;
+
+                        const feeText = isEntry && item.fee_charged > 0 ? (item.fee_charged + ' ' + curr) : '-';
+
                         return `
                             <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950/70 border border-slate-800/80">
-                                <div class="flex items-center gap-2">
-                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${badgeColor}">${label}</span>
-                                    <span class="text-slate-300 font-mono">${timeOnly}</span>
+                                <div class="flex items-center gap-1.5">
+                                    ${zoneBadge}
+                                    ${dirBadge}
+                                    <span class="text-slate-300 font-mono text-[11px]">${timeOnly}</span>
                                 </div>
-                                <span class="font-bold text-slate-200">${item.fee_charged} ${curr}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-400 text-[11px]">${typeLabel}</span>
+                                    <span class="font-bold text-slate-200 font-mono">${feeText}</span>
+                                </div>
                             </div>
                         `;
                     }).join('');
@@ -785,7 +916,7 @@
             }
         }
 
-        // Channel selector helper
+        // Channel selector helper for Hikvision
         function selectChannel(chan) {
             const ip = document.getElementById('nvr-ip').value.trim() || '192.168.1.64';
             const user = document.getElementById('nvr-user').value.trim() || 'admin';
@@ -833,8 +964,6 @@
                 document.getElementById('set-charge-children').checked = !!currentConfig.charge_children;
                 document.getElementById('set-height-threshold').value = currentConfig.child_height_threshold || 160;
                 document.getElementById('val-height-threshold').innerText = (currentConfig.child_height_threshold || 160) + ' px';
-                document.getElementById('set-direction').value = currentConfig.in_direction || 'down';
-                document.getElementById('lbl-direction').innerText = (currentConfig.in_direction || 'down').toUpperCase();
 
                 if (currentConfig.google_sync) {
                     document.getElementById('set-google-webhook').value = currentConfig.google_sync.webhook_url || '';
@@ -862,8 +991,6 @@
             currentConfig.price_per_child = parseFloat(document.getElementById('set-price-child').value);
             currentConfig.charge_children = document.getElementById('set-charge-children').checked;
             currentConfig.child_height_threshold = parseInt(document.getElementById('set-height-threshold').value);
-            currentConfig.in_direction = document.getElementById('set-direction').value;
-            document.getElementById('lbl-direction').innerText = currentConfig.in_direction.toUpperCase();
 
             await saveConfigToServer(currentConfig);
             closeSettingsModal();
@@ -913,11 +1040,14 @@
             }
         }
 
-        // TRIPWIRE DRAWING MODE
+        // =====================================================================
+        // DUAL-ZONE DUAL-LINE TRIPWIRE DRAWING LOGIC
+        // =====================================================================
         function toggleLineDrawing() {
             isDrawingMode = !isDrawingMode;
             const canvas = document.getElementById('drawing-canvas');
             const banner = document.getElementById('draw-helper-banner');
+            const toolbar = document.getElementById('line-edit-toolbar');
             const btnText = document.getElementById('txt-draw-line');
             const t = i18n[currentLang] || i18n.en;
 
@@ -925,14 +1055,40 @@
                 lineClicks = [];
                 canvas.classList.remove('pointer-events-none');
                 banner.classList.remove('hidden');
+                toolbar.classList.remove('hidden');
                 btnText.innerText = t.btn_cancel_drawing;
                 canvas.addEventListener('click', handleCanvasClick);
+                selectDrawingTarget('men', 'line_a');
             } else {
                 canvas.classList.add('pointer-events-none');
                 banner.classList.add('hidden');
+                toolbar.classList.add('hidden');
                 btnText.innerText = t.btn_edit_tripwire;
                 canvas.removeEventListener('click', handleCanvasClick);
             }
+        }
+
+        function selectDrawingTarget(zone, line) {
+            currentTargetZone = zone;
+            currentTargetLine = line;
+            lineClicks = [];
+
+            // Update UI buttons
+            document.querySelectorAll('.line-target-btn').forEach(btn => {
+                btn.className = "line-target-btn px-2.5 py-1 rounded-md text-xs font-bold border transition bg-slate-900 text-slate-400 border-slate-700";
+            });
+
+            const activeBtn = document.getElementById(`btn-target-${zone}-${line.replace('line_', '')}`);
+            if (activeBtn) {
+                const ringColor = zone === 'men' ? 'bg-sky-500/20 text-sky-300 border-sky-400 ring-2 ring-sky-400/40' : 'bg-pink-500/20 text-pink-300 border-pink-400 ring-2 ring-pink-400/40';
+                activeBtn.className = `line-target-btn px-2.5 py-1 rounded-md text-xs font-bold border transition ${ringColor}`;
+            }
+
+            const bannerHint = document.getElementById('txt-draw-banner-hint');
+            const t = i18n[currentLang] || i18n.en;
+            const zName = zone === 'men' ? (t.badge_men) : (t.badge_women);
+            const lName = line === 'line_a' ? 'A (Outer / Dış)' : 'B (Inner / İç)';
+            bannerHint.innerText = `${zName} ${lName}: ${t.draw_banner_hint}`;
         }
 
         async function handleCanvasClick(e) {
@@ -945,7 +1101,10 @@
             lineClicks.push({ x, y });
 
             if (lineClicks.length === 2) {
-                currentConfig.line_coords = {
+                if (!currentConfig.zones) currentConfig.zones = {};
+                if (!currentConfig.zones[currentTargetZone]) currentConfig.zones[currentTargetZone] = {};
+
+                currentConfig.zones[currentTargetZone][currentTargetLine] = {
                     x1: Math.min(Math.max(lineClicks[0].x, 0), 1),
                     y1: Math.min(Math.max(lineClicks[0].y, 0), 1),
                     x2: Math.min(Math.max(lineClicks[1].x, 0), 1),
@@ -953,9 +1112,41 @@
                 };
 
                 await saveConfigToServer(currentConfig);
-                toggleLineDrawing();
-                alert(t.tripwire_updated);
+                lineClicks = [];
+
+                // Automatically advance to the next line in sequence
+                if (currentTargetZone === 'men' && currentTargetLine === 'line_a') {
+                    selectDrawingTarget('men', 'line_b');
+                } else if (currentTargetZone === 'men' && currentTargetLine === 'line_b') {
+                    selectDrawingTarget('women', 'line_a');
+                } else if (currentTargetZone === 'women' && currentTargetLine === 'line_a') {
+                    selectDrawingTarget('women', 'line_b');
+                } else {
+                    alert(t.tripwire_updated);
+                }
             }
+        }
+
+        async function resetTripwirePresets() {
+            currentConfig.zones = {
+                men: {
+                    name: "Men's Restroom",
+                    name_tr: "Erkekler Tuvaleti",
+                    enabled: true,
+                    line_a: { x1: 0.08, y1: 0.35, x2: 0.42, y2: 0.35 },
+                    line_b: { x1: 0.08, y1: 0.60, x2: 0.42, y2: 0.60 }
+                },
+                women: {
+                    name: "Women's Restroom",
+                    name_tr: "Kadınlar Tuvaleti",
+                    enabled: true,
+                    line_a: { x1: 0.58, y1: 0.35, x2: 0.92, y2: 0.35 },
+                    line_b: { x1: 0.58, y1: 0.60, x2: 0.92, y2: 0.60 }
+                }
+            };
+            await saveConfigToServer(currentConfig);
+            alert(i18n[currentLang].tripwire_updated);
+            selectDrawingTarget('men', 'line_a');
         }
 
         // Mobile QR URL
