@@ -4,8 +4,9 @@ Bu sistem, Hikvision güvenlik kameranızı günde 13 saat kesintisiz izleyerek 
 
 ---
 
-## 🚀 1. Sistemi Başlatma (Tek Tıkla)
-- Masaüstünüzdeki **`Tuvalet_Sayac_Baslat.bat`** dosyasına çift tıklayın.
+## 🚀 1. Kurulum ve Başlatma (Tek Tıkla)
+- **İlk Kurulum:** Klasördeki **`Kurulum.bat`** (veya `Setup.bat`) dosyasına çift tıklayın. Sistem için gerekli ortamı (`.venv`) otomatik oluşturur, kütüphaneleri yükler ve masaüstünüze başlatıcı kısayolu ekler.
+- **Başlatma:** Masaüstündeki **`Kamera Kişi Sayacı`** kısayoluna veya klasördeki **`Baslat.bat`** dosyasına çift tıklayın.
 - Program yapay zeka modelini ve kamerayı yükleyip otomatik olarak tarayıcınızda kontrol panelini açacaktır (`http://localhost:8000`).
 
 ---
@@ -66,4 +67,4 @@ Piknik alanında olmasanız bile dünyanın her yerinden telefonunuzdaki **Googl
 ---
 
 ## 📁 7. Yerel Yedekler
-- Her günün saat saat giriş raporları ayrıca `c:\Users\ufukk\KURŞUNLU\tuvalet_sayac\gunluk_raporlar` klasörüne Excel/CSV olarak otomatik kaydedilir.
+- Her günün saat saat giriş raporları ayrıca proje klasöründeki `gunluk_raporlar` klasörüne Excel/CSV olarak otomatik kaydedilir.

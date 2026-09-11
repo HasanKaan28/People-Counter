@@ -1,4 +1,4 @@
-﻿# 👁️ Kamera Kişi Sayacı & Gelir Takip - AI-Powered Vision Counter & Real-Time Revenue Tracking System
+# 👁️ Kamera Kişi Sayacı & Gelir Takip - AI-Powered Vision Counter & Real-Time Revenue Tracking System
 
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-00FFFF?logo=yolo&logoColor=black)](https://github.com/ultralytics/ultralytics)
@@ -37,31 +37,48 @@
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start / Hızlı Başlangıç
 
-### 1. Prerequisites
-- Python 3.10 or higher
-- An IP camera (Hikvision/RTSP) or standard USB webcam
+### 1. Windows (Tek Tıkla Otomatik Kurulum - Önerilen)
+1. Repoyu bilgisayarınıza indirin veya klonlayın:
+   ```bash
+   git clone https://github.com/HasanKaan28/kamera-kisi-sayaci.git
+   cd kamera-kisi-sayaci
+   ```
+2. **`Kurulum.bat`** (veya `Setup.bat`) dosyasına çift tıklayın.
+   - Python ve ortam kontrolünü yapar.
+   - Sanal çalışma ortamını (`.venv`) otomatik oluşturur.
+   - Gerekli tüm yapay zeka paketlerini (`requirements.txt`) yükler.
+   - Masaüstünüze **"Kamera Kişi Sayacı"** kısayolu ekler.
+3. Çalıştırmak için masaüstündeki kısayola veya **`Baslat.bat`** dosyasına çift tıklayın!
 
-### 2. Dependency Installation
+---
+
+### 2. Linux / macOS
 ```bash
-# Clone repository
-git clone https://github.com/HasanKaan28/kamera-kisi-sayaci.git
-cd kamera-kisi-sayaci
+# Kurulum
+chmod +x kurulum.sh baslat.sh
+./kurulum.sh
 
-# Install required packages
-pip install -r requirements.txt
+# Başlatma
+./baslat.sh
 ```
 
-### 3. Execution
-To launch with a single click:
-- Double-click **`Baslat.bat`**.
+---
 
-Or via terminal:
+### 3. Manuel Kurulum (Terminal)
 ```bash
+# Sanal ortam oluşturma ve etkinleştirme
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# Paketleri yükleme
+pip install -r requirements.txt
+
+# Uygulamayı başlatma
 python app.py
 ```
-The web dashboard will automatically open in your default browser at `http://localhost:8000`.
+Kontrol paneli otomatik olarak varsayılan tarayıcınızda açılacaktır: `http://localhost:8000`
 
 ---
 

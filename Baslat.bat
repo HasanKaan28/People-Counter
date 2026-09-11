@@ -1,22 +1,40 @@
 @echo off
-title Kursunlu Piknik Alani - Tuvalet Kamera ve Gelir Takip
+chcp 65001 > nul
+title Kamera Kişi Sayacı & Gelir Takip Sistemi
+
+cd /d "%~dp0"
+
 echo =====================================================================
-echo  KURSUNLU PIKNIK ALANI - TUVALET KAMERA VE GELIR TAKIP SISTEMI
+echo       KAMERA KİŞİ SAYACI VE GELİR TAKİP SİSTEMİ
 echo =====================================================================
 echo.
-echo Sistem baslatiliyor, lutfen bekleyiniz...
-echo.
 
-cd /d "C:\Users\ufukk\KURUNL~1\tuvalet_sayac"
-
-set "PYTHON_EXE=%LOCALAPPDATA%\Programs\Python\Python311\python.exe"
-
-if not exist "%PYTHON_EXE%" (
-    set "PYTHON_EXE=python"
+:: Sanal ortam kontrolü (.venv)
+if not exist ".venv\Scripts\python.exe" (
+    echo [UYARI] Sistem kurulumu henüz yapılmamış veya eksik.
+    echo Kurulum sihirbazı otomatik olarak başlatılıyor...
+    echo.
+    call Kurulum.bat
+    if not exist ".venv\Scripts\python.exe" (
+        echo.
+        echo [HATA] Kurulum tamamlanamadı. Lütfen önce Kurulum.bat dosyasını çalıştırın.
+        pause
+        exit /b 1
+    )
 )
 
+echo Sistem başlatılıyor, lütfen bekleyiniz...
+echo Kontrol Paneli: http://localhost:8000
+echo.
+
+:: Tarayıcıyı 3 saniye sonra otomatik aç
 start "" cmd /c "timeout /t 3 /nobreak > nul & start http://localhost:8000"
 
-"%PYTHON_EXE%" app.py
+:: Uygulamayı sanal ortam Python ile çalıştır
+".venv\Scripts\python.exe" app.py
 
-pause
+if %errorlevel% neq 0 (
+    echo.
+    echo [HATA] Uygulama sonlandı veya bir hatayla karşılaşıldı.
+    pause
+)
