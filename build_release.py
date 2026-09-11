@@ -189,8 +189,58 @@ def sync_git_and_release(version_tag, notes=""):
 
     print(f"\n✨ Successfully built and published {tag_name} to GitHub!")
 
+def install_locally():
+    print("=== [6/6] Installing latest version locally to AppData\\Local\\Programs\\PeopleCounter ===")
+    local_app_dir = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "PeopleCounter")
+    if not os.path.exists(local_app_dir):
+        os.makedirs(local_app_dir, exist_ok=True)
+
+    files_to_copy = [
+        'PeopleCounter.exe', 'PeopleCounter-Setup.exe', 'Setup.bat', 'Start.bat', 'Install.bat',
+        'install.sh', 'start.sh', 'app.py', 'config.py', 'config.json', 'database.py',
+        'tracker.py', 'camera_stream.py', 'google_sync.py', 'google_apps_script_template.js',
+        'requirements.txt', 'README.md', 'USER_GUIDE.md', 'yolov8n.pt', 'app.ico'
+    ]
+    import shutil
+    for f in files_to_copy:
+        if os.path.exists(f):
+            dest = os.path.join(local_app_dir, f)
+            shutil.copy2(f, dest)
+
+    tmpl_src = os.path.join('templates', 'index.html')
+    tmpl_dst_dir = os.path.join(local_app_dir, 'templates')
+    if os.path.exists(tmpl_src):
+        os.makedirs(tmpl_dst_dir, exist_ok=True)
+        shutil.copy2(tmpl_src, os.path.join(tmpl_dst_dir, 'index.html'))
+
+    # Update shortcuts
+    ps_cmd = (
+        "$ws = New-Object -ComObject WScript.Shell; "
+        f"$target = '{os.path.join(local_app_dir, 'PeopleCounter.exe')}'; "
+        f"$ico = '{os.path.join(local_app_dir, 'app.ico')}'; "
+        "$d1 = [Environment]::GetFolderPath('Desktop'); "
+        "$d2 = (Join-Path $env:USERPROFILE 'OneDrive\\Desktop'); "
+        "$d3 = (Join-Path $env:USERPROFILE 'OneDrive\\Masaüstü'); "
+        "$d4 = (Join-Path $env:USERPROFILE 'Desktop'); "
+        "foreach($dir in @($d1,$d2,$d3,$d4)) { "
+        "  if (Test-Path $dir) { "
+        "    try { "
+        "      $s = $ws.CreateShortcut((Join-Path $dir 'People Counter.lnk')); "
+        "      $s.TargetPath = $target; "
+        f"      $s.WorkingDirectory = '{local_app_dir}'; "
+        "      $s.Description = 'AI Camera People Counter & Revenue Tracker'; "
+        "      $s.IconLocation = $ico; "
+        "      $s.Save() "
+        "    } catch {} "
+        "  } "
+        "}"
+    )
+    subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], capture_output=True)
+    print(f"[OK] Local installation updated successfully at: {local_app_dir}")
+
 if __name__ == "__main__":
     version = sys.argv[1] if len(sys.argv) > 1 else "1.1.0"
     notes = sys.argv[2] if len(sys.argv) > 2 else ""
     build_executables()
     sync_git_and_release(version, notes)
+    install_locally()

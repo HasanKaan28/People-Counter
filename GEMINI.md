@@ -13,3 +13,7 @@ Whenever a new feature is completed, a bug is resolved, or a new version/release
    - Push the tag to GitHub (`git push origin v1.X.X`).
    - Create the formal GitHub Release and upload `PeopleCounter-Setup.exe` and `PeopleCounter.exe` as release assets (or run `python build_release.py <version>`).
    - Never leave GitHub un-synced after a version bump.
+4. **Always Install Latest Version Locally:**
+   - Always install/deploy the latest compiled version directly onto the local machine (`%LOCALAPPDATA%\Programs\PeopleCounter`).
+   - Ensure the Desktop shortcut (`People Counter.lnk`) points to the latest executable with `app.ico`.
+   - Never leave the user's local machine with an outdated version.
