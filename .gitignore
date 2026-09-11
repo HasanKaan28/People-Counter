@@ -1,4 +1,4 @@
-﻿# Python
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -11,6 +11,7 @@ venv/
 # Database & Runtime Data
 *.db
 gunluk_raporlar/
+daily_reports/
 
 # Config secrets if any
 # config.json (sample provided)
