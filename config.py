@@ -7,7 +7,7 @@ DEFAULT_CONFIG = {
     # Kamera Kaynagi: Hikvision RTSP adresi, yerel kamera (0) veya test video dosya yolu
     # Ornek Hikvision: "rtsp://admin:12345@192.168.1.64:554/Streaming/Channels/102"
     "camera_source": "0",
-    "camera_name": "Hikvision Tuvalet Giris Kamerasi",
+    "camera_name": "Main Entrance Camera",
     "rtsp_transport": "tcp",  # Paket kaybini onlemek icin TCP zorlamasi
 
     # Fiyatlandirma Ayarlari (TL)

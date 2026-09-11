@@ -1,6 +1,6 @@
 {
     "camera_source": "0",
-    "camera_name": "Hikvision Tuvalet Giris Kamerasi",
+    "camera_name": "Main Entrance Camera",
     "rtsp_transport": "tcp",
     "price_per_adult": 20,
     "price_per_child": 0,

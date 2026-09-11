@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr" class="dark">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tuvalet Giriş & Gelir Takip Sistemi</title>
+    <title id="doc-title">AI Camera People Counter & Revenue Tracker</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -36,7 +36,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-emerald-500 selection:text-white">
 
-    <!-- ÜST BAŞLIK / NAVİGASYON -->
+    <!-- HEADER / NAVIGATION BAR -->
     <header class="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-900/30">
@@ -44,101 +44,110 @@
             </div>
             <div>
                 <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                    Tuvalet Giriş & Ciro Takip Sistemi
-                    <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">CANLI</span>
+                    <span data-i18n="app_title">People Counter & Revenue Tracker</span>
+                    <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" data-i18n="badge_live">LIVE</span>
                 </h1>
-                <p class="text-xs text-slate-400">Piknik Alanı Hikvision Yapay Zeka Sayacı (Günde 13 Saat Kesintisiz)</p>
+                <p class="text-xs text-slate-400" data-i18n="app_subtitle">AI Computer Vision (YOLOv8 + ByteTrack 24/7)</p>
             </div>
         </div>
 
-        <!-- Üst Sağ Butonlar ve Durum İndikatörleri -->
+        <!-- Right Header Controls -->
         <div class="flex items-center flex-wrap gap-2.5">
-            <!-- Kamera Durumu Rozeti -->
+            <!-- Language Switcher -->
+            <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+                <i data-lucide="languages" class="w-4 h-4 text-emerald-400"></i>
+                <select id="lang-select" onchange="switchLanguage(this.value)" class="bg-transparent text-white font-medium text-xs focus:outline-none cursor-pointer">
+                    <option value="en" class="bg-slate-900 text-white">English (EN)</option>
+                    <option value="tr" class="bg-slate-900 text-white">Türkçe (TR)</option>
+                </select>
+            </div>
+
+            <!-- Camera Status Badge -->
             <div id="badge-camera" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span id="txt-camera-status">Kamera: Bağlanıyor</span>
+                <span id="txt-camera-status" data-i18n="cam_connecting">Camera: Connecting...</span>
                 <span id="txt-camera-fps" class="text-slate-500 font-mono">0 FPS</span>
             </div>
 
-            <!-- Google Drive / Sheets Durumu -->
+            <!-- Google Drive / Cloud Sync -->
             <button onclick="openGoogleModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-xs text-slate-300 transition">
                 <i data-lucide="cloud" class="w-4 h-4 text-emerald-400"></i>
-                <span id="txt-google-status">Google Drive: Bağlı</span>
+                <span id="txt-google-status" data-i18n="cloud_sync">Cloud Sync</span>
             </button>
 
-            <!-- Telefonla İzle (QR Kod) -->
+            <!-- Mobile View (QR Code) -->
             <button onclick="openQrModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-md shadow-emerald-900/20 transition">
                 <i data-lucide="smartphone" class="w-4 h-4"></i>
-                <span>Telefonda Aç</span>
+                <span data-i18n="mobile_view">Mobile View</span>
             </button>
 
-            <!-- Ayarlar -->
-            <button onclick="openSettingsModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition" title="Ayarlar">
+            <!-- Settings -->
+            <button onclick="openSettingsModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition" title="Settings">
                 <i data-lucide="settings" class="w-4 h-4"></i>
             </button>
 
-            <!-- Sıfırla -->
-            <button onclick="confirmReset()" class="p-2 rounded-lg bg-slate-800 hover:bg-rose-950/40 border border-slate-700 hover:border-rose-800 text-slate-400 hover:text-rose-400 transition" title="Günü Sıfırla">
+            <!-- Reset Day -->
+            <button onclick="confirmReset()" class="p-2 rounded-lg bg-slate-800 hover:bg-rose-950/40 border border-slate-700 hover:border-rose-800 text-slate-400 hover:text-rose-400 transition" title="Reset Today's Counters">
                 <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
             </button>
         </div>
     </header>
 
-    <!-- ANA İÇERİK -->
+    <!-- MAIN CONTENT -->
     <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-6">
 
-        <!-- CANLI SAYAC KARTLARI -->
+        <!-- LIVE METRIC CARDS -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             
-            <!-- Toplam Giren -->
+            <!-- Total Count -->
             <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 lg:p-5 flex flex-col justify-between relative overflow-hidden">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Toplam Giriş</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" data-i18n="card_total">Total Entrances</span>
                     <div class="p-2 rounded-xl bg-blue-500/10 text-blue-400">
                         <i data-lucide="users" class="w-5 h-5"></i>
                     </div>
                 </div>
                 <div class="mt-4">
                     <div id="stat-total" class="text-3xl lg:text-4xl font-black text-white tracking-tight font-mono">0</div>
-                    <p class="text-xs text-slate-400 mt-1">Bugün tuvalete giren toplam kişi</p>
+                    <p class="text-xs text-slate-400 mt-1" data-i18n="card_total_desc">Total visitors counted today</p>
                 </div>
                 <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-blue-500/5 rounded-full blur-xl pointer-events-none"></div>
             </div>
 
-            <!-- Yetişkin Girişi -->
+            <!-- Adults Count -->
             <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 lg:p-5 flex flex-col justify-between relative overflow-hidden">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Yetişkin Sayısı</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" data-i18n="card_adults">Adults</span>
                     <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
                         <i data-lucide="user-check" class="w-5 h-5"></i>
                     </div>
                 </div>
                 <div class="mt-4">
                     <div id="stat-adults" class="text-3xl lg:text-4xl font-black text-emerald-400 tracking-tight font-mono">0</div>
-                    <p class="text-xs text-slate-400 mt-1">Ücretli tam giriş</p>
+                    <p class="text-xs text-slate-400 mt-1" data-i18n="card_adults_desc">Standard paid admission</p>
                 </div>
                 <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl pointer-events-none"></div>
             </div>
 
-            <!-- Çocuk Girişi -->
+            <!-- Children Count -->
             <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 lg:p-5 flex flex-col justify-between relative overflow-hidden">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Çocuk Sayısı</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" data-i18n="card_children">Children</span>
                     <div class="p-2 rounded-xl bg-amber-500/10 text-amber-400">
                         <i data-lucide="baby" class="w-5 h-5"></i>
                     </div>
                 </div>
                 <div class="mt-4">
                     <div id="stat-children" class="text-3xl lg:text-4xl font-black text-amber-400 tracking-tight font-mono">0</div>
-                    <p id="stat-child-note" class="text-xs text-slate-400 mt-1">Büyüklerin yanında girenler</p>
+                    <p id="stat-child-note" class="text-xs text-slate-400 mt-1" data-i18n="card_children_desc">Accompanied / child admissions</p>
                 </div>
                 <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-500/5 rounded-full blur-xl pointer-events-none"></div>
             </div>
 
-            <!-- TOPLAM CİRO (KASA) -->
+            <!-- TOTAL REVENUE -->
             <div class="bg-gradient-to-br from-emerald-950/70 to-slate-900 border border-emerald-500/30 rounded-2xl p-4 lg:p-5 flex flex-col justify-between relative overflow-hidden glow-green">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Tahsil Edilen Ciro</span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-400" data-i18n="card_revenue">Total Revenue</span>
                     <div class="p-2 rounded-xl bg-emerald-500/20 text-emerald-300">
                         <i data-lucide="wallet" class="w-5 h-5"></i>
                     </div>
@@ -146,14 +155,14 @@
                 <div class="mt-4">
                     <div class="flex items-baseline gap-1">
                         <div id="stat-revenue" class="text-3xl lg:text-4xl font-black text-white tracking-tight font-mono">0</div>
-                        <span class="text-xl font-bold text-emerald-400">₺</span>
+                        <span id="currency-symbol" class="text-xl font-bold text-emerald-400">$</span>
                     </div>
                     <div class="flex items-center gap-2 mt-1">
-                        <span class="text-xs text-slate-300">Kişi Başı:</span>
-                        <input id="input-quick-price" type="number" step="5" min="0" value="20" 
+                        <span class="text-xs text-slate-300" data-i18n="rate_label">Rate:</span>
+                        <input id="input-quick-price" type="number" step="1" min="0" value="20" 
                                onchange="updateQuickPrice(this.value)"
                                class="w-14 bg-slate-800 border border-slate-600 rounded px-1.5 py-0.5 text-xs text-white text-center font-bold focus:ring-1 focus:ring-emerald-500 focus:outline-none">
-                        <span class="text-xs text-slate-400">TL</span>
+                        <span class="text-xs text-slate-400" data-i18n="currency_unit">$</span>
                     </div>
                 </div>
                 <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
@@ -161,60 +170,60 @@
 
         </div>
 
-        <!-- ORTA BÖLÜM: CANLI KAMERA & KONTROL PANELİ -->
+        <!-- CENTER SECTION: LIVE VIDEO & TRIPWIRE -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <!-- SOL / ORTA (2 Kolon): CANLI KAMERA AKIŞI -->
+            <!-- LEFT / CENTER (2 Cols): LIVE STREAM -->
             <div class="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col">
                 <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-800/80">
                     <div class="flex items-center gap-2">
                         <i data-lucide="video" class="w-5 h-5 text-emerald-400"></i>
-                        <span class="font-bold text-sm text-slate-200">Kamera Canlı Takip & Sanal Çizgi</span>
+                        <span class="font-bold text-sm text-slate-200" data-i18n="video_panel_title">Live Vision Stream & Virtual Tripwire</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <button id="btn-draw-line" onclick="toggleLineDrawing()" class="px-3 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
                             <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-                            <span id="txt-draw-line">Kapı Çizgisini Düzenle</span>
+                            <span id="txt-draw-line" data-i18n="btn_edit_tripwire">Edit Tripwire</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Kamera Video Kutusu ve Tıklanabilir Çizim Katmanı -->
+                <!-- Video Frame and Overlay Canvas -->
                 <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center border border-slate-800/90 shadow-2xl">
-                    <img id="camera-stream" src="/video_feed" alt="Kamera Akışı" class="w-full h-full object-contain select-none">
+                    <img id="camera-stream" src="/video_feed" alt="Camera Stream" class="w-full h-full object-contain select-none">
                     
-                    <!-- Çizgi Çizim Katmanı (Overlay Canvas) -->
+                    <!-- Drawing Canvas Layer -->
                     <canvas id="drawing-canvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
 
-                    <!-- Çizim Modu Uyarısı -->
+                    <!-- Drawing Banner -->
                     <div id="draw-helper-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-amber-500/95 text-slate-950 font-bold text-xs px-4 py-2 rounded-full shadow-lg flex items-center gap-2 z-20">
                         <i data-lucide="info" class="w-4 h-4"></i>
-                        <span>Kapı eşiğini belirlemek için ekranda 2 noktaya tıklayın (Başlangıç ve Bitiş)</span>
+                        <span data-i18n="draw_banner_hint">Click 2 points on the camera canvas to set the entrance line (Start & End)</span>
                     </div>
                 </div>
 
-                <!-- Alt Kamera Bilgi Çubuğu -->
+                <!-- Bottom Camera Status Bar -->
                 <div class="mt-3 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
                     <div class="flex items-center gap-3">
-                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span> Yetişkin Kutusu (Mavi)</span>
-                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-500 inline-block"></span> Çocuk Kutusu (Sarı)</span>
-                        <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-yellow-400 inline-block"></span> Geçiş Çizgisi</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span> <span data-i18n="legend_adult">Adult (Blue)</span></span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-500 inline-block"></span> <span data-i18n="legend_child">Child (Yellow)</span></span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-yellow-400 inline-block"></span> <span data-i18n="legend_tripwire">Tripwire</span></span>
                     </div>
                     <div class="text-slate-500">
-                        Giriş Yönü: <span id="lbl-direction" class="font-bold text-slate-300">AŞAĞI</span>
+                        <span data-i18n="direction_text">Entrance Direction:</span> <span id="lbl-direction" class="font-bold text-slate-300">DOWN</span>
                     </div>
                 </div>
             </div>
 
-            <!-- SAĞ KOLON (1 Kolon): SAATLİK GRAFİK VE SON GİRİŞLER -->
+            <!-- RIGHT COLUMN (1 Col): HOURLY CHART & RECENT ACTIVITY -->
             <div class="space-y-6">
 
-                <!-- Saatlik Giriş Grafiği -->
+                <!-- Hourly Chart -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-2">
                             <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-400"></i>
-                            <span class="font-bold text-sm text-slate-200">Bugünkü Saatlik Yoğunluk</span>
+                            <span class="font-bold text-sm text-slate-200" data-i18n="chart_title">Today's Hourly Traffic</span>
                         </div>
                     </div>
                     <div class="h-44 w-full">
@@ -222,17 +231,17 @@
                     </div>
                 </div>
 
-                <!-- Son Geçişler Akışı (Live Activity Feed) -->
+                <!-- Activity Feed -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-2">
                             <i data-lucide="history" class="w-4 h-4 text-blue-400"></i>
-                            <span class="font-bold text-sm text-slate-200">Son Geçişler</span>
+                            <span class="font-bold text-sm text-slate-200" data-i18n="activity_title">Recent Activity</span>
                         </div>
-                        <span class="text-xs text-slate-500" id="txt-last-event-time">Anlık</span>
+                        <span class="text-xs text-slate-500" id="txt-last-event-time" data-i18n="activity_live">Real-time</span>
                     </div>
                     <div id="recent-entrances-list" class="space-y-2 max-h-56 overflow-y-auto pr-1 text-xs">
-                        <div class="text-slate-500 text-center py-4">Henüz geçiş tespit edilmedi.</div>
+                        <div class="text-slate-500 text-center py-4" data-i18n="no_activity">No entrances detected yet.</div>
                     </div>
                 </div>
 
@@ -242,7 +251,7 @@
 
     </main>
 
-    <!-- MODAL 1: TELEFON İLE İZLEME (QR KOD) -->
+    <!-- MODAL 1: MOBILE QR CODE -->
     <div id="modal-qr" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full text-center relative shadow-2xl">
             <button onclick="closeQrModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
@@ -251,21 +260,21 @@
             <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto mb-3">
                 <i data-lucide="smartphone" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-lg font-bold text-white mb-1">Telefondan Canlı İzleyin</h3>
-            <p class="text-xs text-slate-400 mb-4">Piknik alanındaki Wi-Fi ağına bağlı telefonunuzla kamerayı bu QR koda tutun:</p>
+            <h3 class="text-lg font-bold text-white mb-1" data-i18n="modal_qr_title">Watch Live on Mobile</h3>
+            <p class="text-xs text-slate-400 mb-4" data-i18n="modal_qr_desc">Scan this QR code with your smartphone on the same local Wi-Fi network:</p>
             
             <div class="bg-white p-4 rounded-2xl inline-block mb-4 shadow-lg">
-                <img id="qr-code-img" src="/api/qr" alt="Mobil Bağlantı QR Kodu" class="w-48 h-48 mx-auto">
+                <img id="qr-code-img" src="/api/qr" alt="Mobile QR Code" class="w-48 h-48 mx-auto">
             </div>
 
             <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono text-emerald-400 break-all select-all">
                 <span id="txt-mobile-url">http://...</span>
             </div>
-            <p class="text-xs text-slate-500 mt-3">Telefonunuzdan istediğiniz zaman canlı görüntüyü ve kasayı takip edebilirsiniz.</p>
+            <p class="text-xs text-slate-500 mt-3" data-i18n="modal_qr_footer">Monitor live stream and revenue figures from your smartphone browser anytime.</p>
         </div>
     </div>
 
-    <!-- MODAL 2: AYARLAR -->
+    <!-- MODAL 2: SETTINGS -->
     <div id="modal-settings" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full relative shadow-2xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeSettingsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
@@ -277,126 +286,125 @@
                     <i data-lucide="sliders" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h3 class="text-base font-bold text-white">Sistem & Kamera Ayarları</h3>
-                    <p class="text-xs text-slate-400">Hikvision kamera bağlantısı ve ücret kuralları</p>
+                    <h3 class="text-base font-bold text-white" data-i18n="settings_title">System & Camera Settings</h3>
+                    <p class="text-xs text-slate-400" data-i18n="settings_subtitle">RTSP stream configuration and admission rules</p>
                 </div>
             </div>
 
             <form id="settings-form" onsubmit="saveSettings(event)" class="space-y-4 text-xs">
                 
-                <!-- Hikvision 8 Kamera / NVR Kanal Seçici -->
+                <!-- Hikvision / NVR Channel Helper -->
                 <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="font-bold text-slate-200 flex items-center gap-1.5">
                             <i data-lucide="cctv" class="w-4 h-4 text-emerald-400"></i>
-                            Hikvision 8 Kameralı Kayıt Cihazı (NVR/DVR)
+                            <span data-i18n="nvr_helper_title">Hikvision NVR / DVR Helper</span>
                         </span>
-                        <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Kolay Kurulum</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" data-i18n="nvr_quick_setup">Quick Setup</span>
                     </div>
 
                     <div class="grid grid-cols-3 gap-2">
                         <div class="col-span-3 sm:col-span-1">
-                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Cihaz IP Adresi</label>
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1" data-i18n="nvr_ip_label">Device IP</label>
                             <input id="nvr-ip" type="text" placeholder="192.168.1.64" 
                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Kullanıcı Adı</label>
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1" data-i18n="nvr_user_label">Username</label>
                             <input id="nvr-user" type="text" placeholder="admin" value="admin"
                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Kamera Şifresi</label>
-                            <input id="nvr-pass" type="password" placeholder="Şifreniz" 
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1" data-i18n="nvr_pass_label">Password</label>
+                            <input id="nvr-pass" type="password" placeholder="Password" 
                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-mono text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none">
                         </div>
                     </div>
 
-                    <!-- 8 Kamera Kanal Butonları -->
+                    <!-- Channel Buttons -->
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-300 mb-1.5">Tuvaleti Gösteren Kamerayı Seçin (1 - 8):</label>
+                        <label class="block text-[11px] font-semibold text-slate-300 mb-1.5" data-i18n="nvr_select_channel">Select Camera Channel (1 - 8):</label>
                         <div class="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
-                            <button type="button" onclick="selectChannel(1)" id="btn-chan-1" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 1</button>
-                            <button type="button" onclick="selectChannel(2)" id="btn-chan-2" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 2</button>
-                            <button type="button" onclick="selectChannel(3)" id="btn-chan-3" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 3</button>
-                            <button type="button" onclick="selectChannel(4)" id="btn-chan-4" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 4</button>
-                            <button type="button" onclick="selectChannel(5)" id="btn-chan-5" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 5</button>
-                            <button type="button" onclick="selectChannel(6)" id="btn-chan-6" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 6</button>
-                            <button type="button" onclick="selectChannel(7)" id="btn-chan-7" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 7</button>
-                            <button type="button" onclick="selectChannel(8)" id="btn-chan-8" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Kamera 8</button>
+                            <button type="button" onclick="selectChannel(1)" id="btn-chan-1" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Cam 1</button>
+                            <button type="button" onclick="selectChannel(2)" id="btn-chan-2" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Cam 2</button>
+                            <button type="button" onclick="selectChannel(3)" id="btn-chan-3" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Cam 3</button>
+                            <button type="button" onclick="selectChannel(4)" id="btn-chan-4" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Cam 4</button>
+                            <button type="button" onclick="selectChannel(5)" id="btn-chan-5" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Cam 5</button>
+                            <button type="button" onclick="selectChannel(6)" id="btn-chan-6" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Cam 6</button>
+                            <button type="button" onclick="selectChannel(7)" id="btn-chan-7" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Cam 7</button>
+                            <button type="button" onclick="selectChannel(8)" id="btn-chan-8" class="btn-channel py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs border border-slate-700 transition">Cam 8</button>
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1">Hangi kameranın tuvalete baktığını bilmiyorsanız numaralara sırayla basıp ekrandan görüntüyü kontrol edebilirsiniz.</p>
                     </div>
                 </div>
 
-                <!-- Manuel RTSP veya Test Kamerası -->
+                <!-- Custom RTSP / Local Camera -->
                 <div class="pt-2">
-                    <label class="block font-semibold text-slate-300 mb-1">Oluşturulan RTSP Adresi veya Özel Kaynak</label>
+                    <label class="block font-semibold text-slate-300 mb-1" data-i18n="rtsp_url_label">Camera Source (RTSP URL or Device Index)</label>
                     <input id="set-camera-source" type="text" 
                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-mono text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                           placeholder="rtsp://admin:sifre@192.168.1.64:554/Streaming/Channels/102 veya 0">
+                           placeholder="rtsp://admin:pass@192.168.1.64:554/Streaming/Channels/102 or 0">
                     <div class="flex items-center justify-between mt-1 text-[11px] text-slate-500">
-                        <span>Bilgisayar kamerasını denemek için <code class="text-slate-300">0</code> yazabilirsiniz.</span>
-                        <button type="button" onclick="document.getElementById('set-camera-source').value = '0'" class="text-emerald-400 hover:underline">Webcam Testi Yap (0)</button>
+                        <span data-i18n="webcam_hint">Enter <code class="text-slate-300">0</code> to test with local USB webcam.</span>
+                        <button type="button" onclick="document.getElementById('set-camera-source').value = '0'" class="text-emerald-400 hover:underline" data-i18n="btn_use_webcam">Use Webcam (0)</button>
                     </div>
                 </div>
 
-                <!-- Fiyatlandırma -->
+                <!-- Pricing -->
                 <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
                     <div>
-                        <label class="block font-semibold text-slate-300 mb-1">Yetişkin Giriş Ücreti (TL)</label>
+                        <label class="block font-semibold text-slate-300 mb-1" data-i18n="price_adult_label">Adult Price</label>
                         <input id="set-price-adult" type="number" step="1" min="0" value="20"
                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-bold focus:ring-1 focus:ring-emerald-500 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block font-semibold text-slate-300 mb-1">Çocuk Giriş Ücreti (TL)</label>
+                        <label class="block font-semibold text-slate-300 mb-1" data-i18n="price_child_label">Child Price</label>
                         <input id="set-price-child" type="number" step="1" min="0" value="0"
                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-bold focus:ring-1 focus:ring-emerald-500 focus:outline-none">
                     </div>
                 </div>
 
-                <!-- Çocuk Ücret Seçimi -->
+                <!-- Charge Children Option -->
                 <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-slate-800">
                     <div>
-                        <div class="font-semibold text-slate-200">Çocuklardan da Ücret Alınsın</div>
-                        <div class="text-[11px] text-slate-400">Kapalıysa çocuk girişleri sadece sayılır, kasaya para eklenmez.</div>
+                        <div class="font-semibold text-slate-200" data-i18n="charge_children_title">Charge Admission for Children</div>
+                        <div class="text-[11px] text-slate-400" data-i18n="charge_children_desc">If unchecked, children are counted but added as free entries.</div>
                     </div>
                     <input id="set-charge-children" type="checkbox" class="w-5 h-5 accent-emerald-500 rounded cursor-pointer">
                 </div>
 
-                <!-- Çocuk Boyut Eşiği -->
+                <!-- Child Height Threshold -->
                 <div class="pt-2 border-t border-slate-800">
                     <div class="flex justify-between items-center mb-1">
-                        <label class="font-semibold text-slate-300">Çocuk / Yetişkin Boyut Eşiği (Piksel)</label>
+                        <label class="font-semibold text-slate-300" data-i18n="height_threshold_label">Child vs Adult Height Threshold (Pixels)</label>
                         <span id="val-height-threshold" class="font-mono text-emerald-400 font-bold">160 px</span>
                     </div>
                     <input id="set-height-threshold" type="range" min="80" max="350" step="5" value="160"
                            oninput="document.getElementById('val-height-threshold').innerText = this.value + ' px'"
                            class="w-full accent-emerald-500 cursor-pointer">
-                    <p class="text-slate-500 text-[11px] mt-1">Tespit kutusu boyu bu değerin altında kalan kişiler otomatik çocuk olarak sınıflandırılır.</p>
+                    <p class="text-slate-500 text-[11px] mt-1" data-i18n="height_threshold_desc">Detection boxes below this pixel height are automatically classified as children.</p>
                 </div>
 
-                <!-- Giriş Yönü -->
+                <!-- Entrance Direction -->
                 <div class="pt-2 border-t border-slate-800">
-                    <label class="block font-semibold text-slate-300 mb-1">İçeri Giriş Yönü</label>
+                    <label class="block font-semibold text-slate-300 mb-1" data-i18n="direction_select_label">Entrance Direction</label>
                     <select id="set-direction" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:ring-1 focus:ring-emerald-500 focus:outline-none">
-                        <option value="down">Yukarıdan Aşağıya Doğru (Önerilen)</option>
-                        <option value="up">Aşağıdan Yukarıya Doğru</option>
-                        <option value="right">Soldan Sağa Doğru</option>
-                        <option value="left">Sağdan Sola Doğru</option>
+                        <option value="down" data-i18n="dir_down">Top to Bottom (Recommended)</option>
+                        <option value="up" data-i18n="dir_up">Bottom to Top</option>
+                        <option value="right" data-i18n="dir_right">Left to Right</option>
+                        <option value="left" data-i18n="dir_left">Right to Left</option>
                     </select>
                 </div>
 
-                <!-- Butonlar -->
+                <!-- Action Buttons -->
                 <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
-                    <button type="button" onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition">İptal</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-lg shadow-emerald-900/20">Ayarları Kaydet</button>
+                    <button type="button" onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" data-i18n="btn_cancel">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-lg shadow-emerald-900/20" data-i18n="btn_save_settings">Save Settings</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 3: GOOGLE DRIVE / SHEETS SENKRONİZASYONU -->
+    <!-- MODAL 3: GOOGLE DRIVE / SHEETS SYNC -->
     <div id="modal-google" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full relative shadow-2xl">
             <button onclick="closeGoogleModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
@@ -408,8 +416,8 @@
                     <i data-lucide="cloud" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h3 class="text-base font-bold text-white">Google Drive / E-Tablo Canlı Senkronizasyon</h3>
-                    <p class="text-xs text-slate-400">Verileri her an cep telefonunuzdaki Google Drive uygulamasında görün</p>
+                    <h3 class="text-base font-bold text-white" data-i18n="google_modal_title">Google Sheets / Cloud Sync</h3>
+                    <p class="text-xs text-slate-400" data-i18n="google_modal_subtitle">Live automatic syncing to Google Sheets / Google Drive</p>
                 </div>
             </div>
 
@@ -417,25 +425,24 @@
                 <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
                     <div class="font-bold text-slate-200 flex items-center gap-1.5">
                         <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
-                        Nasıl Çalışır?
+                        <span data-i18n="google_how_it_works">How It Works</span>
                     </div>
-                    <p class="text-slate-400 leading-relaxed">
-                        Google Drive'ınızda açacağınız bir E-Tabloya sistem her tuvalet girişinde ve periyodik olarak canlı kişi sayısını ve ciroyu işler. Piknik alanında olmasanız bile dünyanın her yerinden cep telefonunuzdan kasayı anlık takip edebilirsiniz.
+                    <p class="text-slate-400 leading-relaxed" data-i18n="google_how_desc">
+                        Every crossing event and hourly turnover is logged in real-time to your Google Spreadsheet via Webhook API. You can monitor your facility numbers from anywhere in the world.
                     </p>
                 </div>
 
                 <div>
-                    <label class="block font-semibold text-slate-300 mb-1">Google Apps Script Webhook URL</label>
+                    <label class="block font-semibold text-slate-300 mb-1" data-i18n="google_webhook_label">Google Apps Script Webhook URL</label>
                     <input id="set-google-webhook" type="text"
                            placeholder="https://script.google.com/macros/s/.../exec"
                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono focus:ring-1 focus:ring-emerald-500 focus:outline-none">
-                    <p class="text-slate-500 text-[11px] mt-1">Google E-Tablolar > Uzantılar > Apps Script üzerinden oluşturulan Web Uygulaması bağlantısı.</p>
                 </div>
 
                 <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
                     <div>
-                        <div class="font-semibold text-slate-200">Google Senkronizasyonu Aktif</div>
-                        <div class="text-[11px] text-slate-400">Veriler anlık olarak Google Drive'a gönderilsin</div>
+                        <div class="font-semibold text-slate-200" data-i18n="google_enabled_label">Google Sync Active</div>
+                        <div class="text-[11px] text-slate-400" data-i18n="google_enabled_desc">Transmit live data to cloud spreadsheet</div>
                     </div>
                     <input id="set-google-enabled" type="checkbox" class="w-5 h-5 accent-emerald-500 rounded cursor-pointer">
                 </div>
@@ -443,17 +450,197 @@
                 <div class="flex items-center justify-between pt-2">
                     <button onclick="testGoogleSync()" type="button" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5">
                         <i data-lucide="send" class="w-3.5 h-3.5 text-emerald-400"></i>
-                        <span>Test Verisi Gönder</span>
+                        <span data-i18n="btn_test_sync">Send Test Data</span>
                     </button>
-                    <button onclick="saveGoogleSettings()" type="button" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition">Kaydet</button>
+                    <button onclick="saveGoogleSettings()" type="button" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition" data-i18n="btn_save">Save</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JAVASCRIPT MOTORU -->
+    <!-- I18N AND JAVASCRIPT ENGINE -->
     <script>
-        // Lucide İkonlarını Başlat
+        // Internationalization (i18n) Translations
+        const i18n = {
+            en: {
+                doc_title: "AI Camera People Counter & Revenue Tracker",
+                app_title: "People Counter & Revenue Tracker",
+                badge_live: "LIVE",
+                app_subtitle: "AI Computer Vision (YOLOv8 + ByteTrack 24/7)",
+                cam_connecting: "Camera: Connecting...",
+                cam_live: "Camera Live",
+                cam_offline: "Camera Offline",
+                cloud_sync: "Cloud Sync",
+                mobile_view: "Mobile View",
+                card_total: "Total Entrances",
+                card_total_desc: "Total visitors counted today",
+                card_adults: "Adults",
+                card_adults_desc: "Standard paid admission",
+                card_children: "Children",
+                card_children_desc: "Accompanied / child admissions",
+                card_revenue: "Total Revenue",
+                rate_label: "Rate:",
+                currency_unit: "$",
+                video_panel_title: "Live Vision Stream & Virtual Tripwire",
+                btn_edit_tripwire: "Edit Tripwire",
+                btn_cancel_drawing: "Cancel Drawing",
+                draw_banner_hint: "Click 2 points on the camera canvas to set the entrance line (Start & End)",
+                legend_adult: "Adult (Blue)",
+                legend_child: "Child (Yellow)",
+                legend_tripwire: "Tripwire",
+                direction_text: "Entrance Direction:",
+                chart_title: "Today's Hourly Traffic",
+                chart_dataset: "Entrances",
+                activity_title: "Recent Activity",
+                activity_live: "Real-time",
+                no_activity: "No entrances detected yet.",
+                modal_qr_title: "Watch Live on Mobile",
+                modal_qr_desc: "Scan this QR code with your smartphone on the same local Wi-Fi network:",
+                modal_qr_footer: "Monitor live stream and revenue figures from your smartphone browser anytime.",
+                settings_title: "System & Camera Settings",
+                settings_subtitle: "RTSP stream configuration and admission rules",
+                nvr_helper_title: "Hikvision NVR / DVR Helper",
+                nvr_quick_setup: "Quick Setup",
+                nvr_ip_label: "Device IP",
+                nvr_user_label: "Username",
+                nvr_pass_label: "Password",
+                nvr_select_channel: "Select Camera Channel (1 - 8):",
+                rtsp_url_label: "Camera Source (RTSP URL or Device Index)",
+                webcam_hint: "Enter 0 to test with local USB webcam.",
+                btn_use_webcam: "Use Webcam (0)",
+                price_adult_label: "Adult Price",
+                price_child_label: "Child Price",
+                charge_children_title: "Charge Admission for Children",
+                charge_children_desc: "If unchecked, children are counted but added as free entries.",
+                height_threshold_label: "Child vs Adult Height Threshold (Pixels)",
+                height_threshold_desc: "Detection boxes below this pixel height are automatically classified as children.",
+                direction_select_label: "Entrance Direction",
+                dir_down: "Top to Bottom (Recommended)",
+                dir_up: "Bottom to Top",
+                dir_right: "Left to Right",
+                dir_left: "Right to Left",
+                btn_cancel: "Cancel",
+                btn_save_settings: "Save Settings",
+                google_modal_title: "Google Sheets / Cloud Sync",
+                google_modal_subtitle: "Live automatic syncing to Google Sheets / Google Drive",
+                google_how_it_works: "How It Works",
+                google_how_desc: "Every crossing event and hourly turnover is logged in real-time to your Google Spreadsheet via Webhook API. You can monitor your facility numbers from anywhere in the world.",
+                google_webhook_label: "Google Apps Script Webhook URL",
+                google_enabled_label: "Google Sync Active",
+                google_enabled_desc: "Transmit live data to cloud spreadsheet",
+                btn_test_sync: "Send Test Data",
+                btn_save: "Save",
+                confirm_reset: "Are you sure you want to reset today's counters?",
+                tripwire_updated: "Virtual tripwire line updated successfully!",
+                badge_adult: "Adult",
+                badge_child: "Child"
+            },
+            tr: {
+                doc_title: "Kamera Kişi Sayacı & Gelir Takip Sistemi",
+                app_title: "Kişi Sayacı & Ciro Takip Sistemi",
+                badge_live: "CANLI",
+                app_subtitle: "Yapay Zeka Görüşü (YOLOv8 + ByteTrack 7/24 Kesintisiz)",
+                cam_connecting: "Kamera: Bağlanıyor...",
+                cam_live: "Kamera Canlı",
+                cam_offline: "Kamera Çevrimdışı",
+                cloud_sync: "Bulut Senkron",
+                mobile_view: "Telefonda Aç",
+                card_total: "Toplam Giriş",
+                card_total_desc: "Bugün giriş yapan toplam kişi",
+                card_adults: "Yetişkin Sayısı",
+                card_adults_desc: "Ücretli standart giriş",
+                card_children: "Çocuk Sayısı",
+                card_children_desc: "Eşlik eden / çocuk girişleri",
+                card_revenue: "Tahsil Edilen Ciro",
+                rate_label: "Tarife:",
+                currency_unit: "TL",
+                video_panel_title: "Kamera Canlı Takip & Sanal Çizgi",
+                btn_edit_tripwire: "Kapı Çizgisini Düzenle",
+                btn_cancel_drawing: "Çizimi İptal Et",
+                draw_banner_hint: "Kapı eşiğini belirlemek için ekranda 2 noktaya tıklayın (Başlangıç ve Bitiş)",
+                legend_adult: "Yetişkin (Mavi)",
+                legend_child: "Çocuk (Sarı)",
+                legend_tripwire: "Geçiş Çizgisi",
+                direction_text: "Giriş Yönü:",
+                chart_title: "Bugünkü Saatlik Yoğunluk",
+                chart_dataset: "Girişler",
+                activity_title: "Son Geçişler",
+                activity_live: "Anlık",
+                no_activity: "Henüz geçiş tespit edilmedi.",
+                modal_qr_title: "Telefondan Canlı İzleyin",
+                modal_qr_desc: "Piknik alanındaki Wi-Fi ağına bağlı telefonunuzla kamerayı bu QR koda tutun:",
+                modal_qr_footer: "Telefonunuzdan istediğiniz zaman canlı görüntüyü ve kasayı takip edebilirsiniz.",
+                settings_title: "Sistem & Kamera Ayarları",
+                settings_subtitle: "Hikvision kamera bağlantısı ve ücret kuralları",
+                nvr_helper_title: "Hikvision Kayıt Cihazı (NVR/DVR)",
+                nvr_quick_setup: "Kolay Kurulum",
+                nvr_ip_label: "Cihaz IP Adresi",
+                nvr_user_label: "Kullanıcı Adı",
+                nvr_pass_label: "Kamera Şifresi",
+                nvr_select_channel: "Tuvaleti Gösteren Kamerayı Seçin (1 - 8):",
+                rtsp_url_label: "Oluşturulan RTSP Adresi veya Özel Kaynak",
+                webcam_hint: "Bilgisayar kamerasını denemek için 0 yazabilirsiniz.",
+                btn_use_webcam: "Webcam Testi Yap (0)",
+                price_adult_label: "Yetişkin Giriş Ücreti",
+                price_child_label: "Çocuk Giriş Ücreti",
+                charge_children_title: "Çocuklardan da Ücret Alınsın",
+                charge_children_desc: "Kapalıysa çocuk girişleri sadece sayılır, kasaya para eklenmez.",
+                height_threshold_label: "Çocuk / Yetişkin Boyut Eşiği (Piksel)",
+                height_threshold_desc: "Tespit kutusu boyu bu değerin altında kalan kişiler otomatik çocuk olarak sınıflandırılır.",
+                direction_select_label: "İçeri Giriş Yönü",
+                dir_down: "Yukarıdan Aşağıya Doğru (Önerilen)",
+                dir_up: "Aşağıdan Yukarıya Doğru",
+                dir_right: "Soldan Sağa Doğru",
+                dir_left: "Sağdan Sola Doğru",
+                btn_cancel: "İptal",
+                btn_save_settings: "Ayarları Kaydet",
+                google_modal_title: "Google Drive / E-Tablo Canlı Senkronizasyon",
+                google_modal_subtitle: "Verileri her an cep telefonunuzdaki Google Drive uygulamasında görün",
+                google_how_it_works: "Nasıl Çalışır?",
+                google_how_desc: "Google Drive'ınızda açacağınız bir E-Tabloya sistem her girişte ve periyodik olarak canlı kişi sayısını ve ciroyu işler. Dünyanın her yerinden cep telefonunuzdan kasayı anlık takip edebilirsiniz.",
+                google_webhook_label: "Google Apps Script Webhook URL",
+                google_enabled_label: "Google Senkronizasyonu Aktif",
+                google_enabled_desc: "Veriler anlık olarak Google Drive'a gönderilsin",
+                btn_test_sync: "Test Verisi Gönder",
+                btn_save: "Kaydet",
+                confirm_reset: "Bugünün giriş sayaçlarını sıfırlamak istediğinize emin misiniz?",
+                tripwire_updated: "Kapı geçiş çizgisi başarıyla güncellendi!",
+                badge_adult: "Yetişkin",
+                badge_child: "Çocuk"
+            }
+        };
+
+        // Active Language (DEFAULT IS ENGLISH: 'en')
+        let currentLang = localStorage.getItem('app_lang') || 'en';
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('app_lang', lang);
+            document.getElementById('lang-select').value = lang;
+            document.documentElement.lang = lang;
+
+            const t = i18n[lang] || i18n.en;
+            document.getElementById('doc-title').innerText = t.doc_title;
+
+            // Translate all elements with data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    el.innerText = t[key];
+                }
+            });
+
+            // Update currency symbol
+            const curr = lang === 'tr' ? '₺' : '$';
+            document.getElementById('currency-symbol').innerText = curr;
+
+            if (hourlyChart) {
+                hourlyChart.data.datasets[0].label = t.chart_dataset;
+                hourlyChart.update('none');
+            }
+        }
+
+        // Initialize Lucide Icons
         lucide.createIcons();
 
         let currentConfig = {};
@@ -461,28 +648,31 @@
         let isDrawingMode = false;
         let lineClicks = [];
 
-        // Sayfa Yüklendiğinde
         document.addEventListener("DOMContentLoaded", () => {
+            // Apply language first
+            switchLanguage(currentLang);
+
             initChart();
             loadSettings();
             fetchStats();
             fetchHistory();
             fetchMobileUrl();
 
-            // Canlı periyodik güncellemeler (Her 1.5 saniyede bir sayaçlar güncellenir)
+            // Periodic updates
             setInterval(fetchStats, 1500);
             setInterval(fetchHistory, 10000);
         });
 
-        // Chart.js Başlatma
+        // Initialize Chart.js
         function initChart() {
             const ctx = document.getElementById('hourlyChart').getContext('2d');
+            const t = i18n[currentLang] || i18n.en;
             hourlyChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'],
                     datasets: [{
-                        label: 'Giriş',
+                        label: t.chart_dataset,
                         data: [0, 0, 0, 0, 0, 0, 0],
                         backgroundColor: '#10b981',
                         borderRadius: 6,
@@ -510,57 +700,55 @@
             });
         }
 
-        // Anlık İstatistikleri Çekme
+        // Fetch Live Stats
         async function fetchStats() {
             try {
                 const res = await fetch('/api/stats');
                 if (!res.ok) return;
                 const data = await res.json();
+                const t = i18n[currentLang] || i18n.en;
 
-                // Sayaçları güncelle
                 document.getElementById('stat-total').innerText = data.total_count;
                 document.getElementById('stat-adults').innerText = data.adult_count;
                 document.getElementById('stat-children').innerText = data.child_count;
-                document.getElementById('stat-revenue').innerText = Number(data.total_revenue).toLocaleString('tr-TR');
+                document.getElementById('stat-revenue').innerText = Number(data.total_revenue).toLocaleString();
 
-                // Kamera durumu rozeti
                 const camBadge = document.getElementById('badge-camera');
                 const txtStatus = document.getElementById('txt-camera-status');
                 const txtFps = document.getElementById('txt-camera-fps');
 
-                if (data.camera.connected) {
-                    txtStatus.innerText = 'Kamera Canlı';
+                if (data.camera && data.camera.connected) {
+                    txtStatus.innerText = t.cam_live;
                     txtFps.innerText = data.camera.fps + ' FPS';
                     camBadge.classList.remove('border-rose-800', 'text-rose-400');
                     camBadge.classList.add('border-slate-700', 'text-slate-300');
                 } else {
-                    txtStatus.innerText = data.camera.status;
+                    txtStatus.innerText = t.cam_offline;
                     txtFps.innerText = '';
                     camBadge.classList.remove('border-slate-700', 'text-slate-300');
                     camBadge.classList.add('border-rose-800', 'text-rose-400');
                 }
 
-                // Google senkronizasyon durumu
                 const googleTxt = document.getElementById('txt-google-status');
                 if (data.google_sync && data.google_sync.enabled) {
-                    googleTxt.innerText = data.google_sync.last_sync ? 'Google: ' + data.google_sync.last_sync : 'Google: Aktif';
+                    googleTxt.innerText = data.google_sync.last_sync ? 'Cloud: ' + data.google_sync.last_sync : 'Cloud: Active';
                 } else {
-                    googleTxt.innerText = 'Google Drive';
+                    googleTxt.innerText = t.cloud_sync;
                 }
 
             } catch (err) {
-                console.error("İstatistik hatası:", err);
+                console.error("Stats fetch error:", err);
             }
         }
 
-        // Saatlik Grafiği ve Son Girişleri Güncelleme
+        // Fetch Hourly History & Activity Feed
         async function fetchHistory() {
             try {
                 const res = await fetch('/api/history');
                 if (!res.ok) return;
                 const data = await res.json();
+                const t = i18n[currentLang] || i18n.en;
 
-                // Grafik verilerini güncelle (Saat 08:00 ile 21:00 arası piknik saatleri)
                 if (hourlyChart && data.hourly) {
                     const filtered = data.hourly.filter(h => {
                         const hr = parseInt(h.hour);
@@ -571,13 +759,13 @@
                     hourlyChart.update('none');
                 }
 
-                // Son girişler listesini güncelle
                 const listEl = document.getElementById('recent-entrances-list');
                 if (data.recent && data.recent.length > 0) {
+                    const curr = currentLang === 'tr' ? 'TL' : '$';
                     listEl.innerHTML = data.recent.map(item => {
                         const isChild = item.person_type === 'child';
                         const badgeColor = isChild ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-                        const label = isChild ? 'Çocuk' : 'Yetişkin';
+                        const label = isChild ? t.badge_child : t.badge_adult;
                         const timeOnly = item.timestamp.split(' ')[1] || item.timestamp;
                         return `
                             <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950/70 border border-slate-800/80">
@@ -585,28 +773,27 @@
                                     <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${badgeColor}">${label}</span>
                                     <span class="text-slate-300 font-mono">${timeOnly}</span>
                                 </div>
-                                <span class="font-bold text-slate-200">${item.fee_charged} TL</span>
+                                <span class="font-bold text-slate-200">${item.fee_charged} ${curr}</span>
                             </div>
                         `;
                     }).join('');
+                } else {
+                    listEl.innerHTML = `<div class="text-slate-500 text-center py-4">${t.no_activity}</div>`;
                 }
             } catch (err) {
-                console.error("Geçmiş veri hatası:", err);
+                console.error("History fetch error:", err);
             }
         }
 
-        // 8 Kamera Kanalı Seçimi
+        // Channel selector helper
         function selectChannel(chan) {
             const ip = document.getElementById('nvr-ip').value.trim() || '192.168.1.64';
             const user = document.getElementById('nvr-user').value.trim() || 'admin';
             const pass = document.getElementById('nvr-pass').value.trim() || '12345';
 
-            // Hikvision NVR formatı: Channels/[Kanal]02
-            // Kanal 1 = 102, Kanal 2 = 202, ... Kanal 8 = 802
             const rtspUrl = `rtsp://${user}:${pass}@${ip}:554/Streaming/Channels/${chan}02`;
             document.getElementById('set-camera-source').value = rtspUrl;
 
-            // Buton aktiflik görünümünü güncelle
             document.querySelectorAll('.btn-channel').forEach(b => {
                 b.classList.remove('bg-emerald-600', 'ring-2', 'ring-emerald-400');
                 b.classList.add('bg-slate-800');
@@ -618,7 +805,7 @@
             }
         }
 
-        // Ayarları Sunucudan Getir
+        // Load Settings
         async function loadSettings() {
             try {
                 const res = await fetch('/api/settings');
@@ -627,8 +814,6 @@
                 const camSrc = currentConfig.camera_source || "0";
                 document.getElementById('set-camera-source').value = camSrc;
 
-                // Eğer RTSP Hikvision NVR linkiyse kutucukları otomatik doldur
-                // Örnek: rtsp://admin:pass@192.168.1.64:554/Streaming/Channels/302
                 const match = camSrc.match(/rtsp:\/\/([^:]+):([^@]+)@([^:]+):554\/Streaming\/Channels\/(\d)0[12]/);
                 if (match) {
                     document.getElementById('nvr-user').value = match[1];
@@ -656,11 +841,11 @@
                     document.getElementById('set-google-enabled').checked = !!currentConfig.google_sync.enabled;
                 }
             } catch (err) {
-                console.error("Ayar yükleme hatası:", err);
+                console.error("Settings load error:", err);
             }
         }
 
-        // Hızlı Fiyat Güncelleme (Ana Kart Üzerinden)
+        // Quick Price Update
         async function updateQuickPrice(val) {
             const price = parseFloat(val);
             if (isNaN(price) || price < 0) return;
@@ -669,7 +854,7 @@
             fetchStats();
         }
 
-        // Ayarları Kaydet
+        // Save Settings
         async function saveSettings(e) {
             e.preventDefault();
             currentConfig.camera_source = document.getElementById('set-camera-source').value.trim();
@@ -685,7 +870,7 @@
             fetchStats();
         }
 
-        // Google Ayarlarını Kaydet
+        // Save Google Sync
         async function saveGoogleSettings() {
             if (!currentConfig.google_sync) currentConfig.google_sync = {};
             currentConfig.google_sync.webhook_url = document.getElementById('set-google-webhook').value.trim();
@@ -700,9 +885,9 @@
             try {
                 const res = await fetch('/api/test_google_sync', { method: 'POST' });
                 const data = await res.json();
-                alert(data.message || "Test tamamlandı!");
+                alert(data.message || "Test completed!");
             } catch (err) {
-                alert("Hata: " + err);
+                alert("Error: " + err);
             }
         }
 
@@ -714,36 +899,38 @@
                     body: JSON.stringify(cfg)
                 });
             } catch (err) {
-                alert("Ayar kaydedilirken hata: " + err);
+                alert("Error saving settings: " + err);
             }
         }
 
-        // Günü Sıfırla
+        // Reset Day
         async function confirmReset() {
-            if (confirm("Bugünün tuvalet giriş sayaçlarını sıfırlamak istediğinize emin misiniz?")) {
+            const t = i18n[currentLang] || i18n.en;
+            if (confirm(t.confirm_reset)) {
                 await fetch('/api/reset', { method: 'POST' });
                 fetchStats();
                 fetchHistory();
             }
         }
 
-        // ÇİZGİ ÇİZME MODU (Tripwire Setup)
+        // TRIPWIRE DRAWING MODE
         function toggleLineDrawing() {
             isDrawingMode = !isDrawingMode;
             const canvas = document.getElementById('drawing-canvas');
             const banner = document.getElementById('draw-helper-banner');
             const btnText = document.getElementById('txt-draw-line');
+            const t = i18n[currentLang] || i18n.en;
 
             if (isDrawingMode) {
                 lineClicks = [];
                 canvas.classList.remove('pointer-events-none');
                 banner.classList.remove('hidden');
-                btnText.innerText = 'Çizimi İptal Et';
+                btnText.innerText = t.btn_cancel_drawing;
                 canvas.addEventListener('click', handleCanvasClick);
             } else {
                 canvas.classList.add('pointer-events-none');
                 banner.classList.add('hidden');
-                btnText.innerText = 'Kapı Çizgisini Düzenle';
+                btnText.innerText = t.btn_edit_tripwire;
                 canvas.removeEventListener('click', handleCanvasClick);
             }
         }
@@ -753,6 +940,7 @@
             const rect = canvas.getBoundingClientRect();
             const x = (e.clientX - rect.left) / rect.width;
             const y = (e.clientY - rect.top) / rect.height;
+            const t = i18n[currentLang] || i18n.en;
 
             lineClicks.push({ x, y });
 
@@ -766,11 +954,11 @@
 
                 await saveConfigToServer(currentConfig);
                 toggleLineDrawing();
-                alert("Kapı geçiş çizgisi başarıyla güncellendi!");
+                alert(t.tripwire_updated);
             }
         }
 
-        // Mobil URL Çekme
+        // Mobile QR URL
         async function fetchMobileUrl() {
             try {
                 const res = await fetch('/api/mobile_url');
@@ -779,7 +967,7 @@
             } catch (err) {}
         }
 
-        // Modal Yönetimi
+        // Modal Controllers
         function openQrModal() { document.getElementById('modal-qr').classList.remove('hidden'); }
         function closeQrModal() { document.getElementById('modal-qr').classList.add('hidden'); }
         function openSettingsModal() { document.getElementById('modal-settings').classList.remove('hidden'); }

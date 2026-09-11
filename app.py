@@ -22,7 +22,7 @@ from google_sync import GoogleSyncManager
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
-app = FastAPI(title="Piknik Alani Tuvalet Sayac ve Gelir Takip Sistemi")
+app = FastAPI(title="AI Camera People Counter & Revenue Tracker")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 # 1. Yapılandırma ve Servisleri Başlat
