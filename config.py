@@ -19,24 +19,24 @@ DEFAULT_CONFIG = {
     # Calibrated according to camera mounting angle
     "child_height_threshold": 160,
 
-    # Dual Restroom Zones: Men (Erkekler) & Women (Kadınlar)
-    # Each zone has 2 lines: Line A (Outer/Dış) and Line B (Inner/İç)
-    # Crossing Line A -> Line B = ENTRY (GİRİŞ)
-    # Crossing Line B -> Line A = EXIT (ÇIKIŞ)
+    # Dual Restroom Zones: Exactly 1 single line per door (Men & Women)
+    # Optimized for overhead security cameras (Giriş ve Çıkış aynı kapıdan tek çizgiyle takip edilir):
+    # - Crossing in the direction of the entry arrow = GİRİŞ (ENTRY, +1 In, +Fee, +1 Inside)
+    # - Crossing in the opposite direction = ÇIKIŞ (EXIT, +1 Out, Free, -1 Inside)
     "zones": {
         "men": {
             "name": "Men's Restroom",
             "name_tr": "Erkekler Tuvaleti",
             "enabled": True,
-            "line_a": {"x1": 0.08, "y1": 0.35, "x2": 0.42, "y2": 0.35},
-            "line_b": {"x1": 0.08, "y1": 0.60, "x2": 0.42, "y2": 0.60}
+            "line": {"x1": 0.08, "y1": 0.50, "x2": 0.42, "y2": 0.50},
+            "entry_dir": 1  # 1 = downward normal (positive side is entry), -1 = upward normal
         },
         "women": {
             "name": "Women's Restroom",
             "name_tr": "Kadınlar Tuvaleti",
             "enabled": True,
-            "line_a": {"x1": 0.58, "y1": 0.35, "x2": 0.92, "y2": 0.35},
-            "line_b": {"x1": 0.58, "y1": 0.60, "x2": 0.92, "y2": 0.60}
+            "line": {"x1": 0.58, "y1": 0.50, "x2": 0.92, "y2": 0.50},
+            "entry_dir": 1
         }
     },
 
@@ -97,6 +97,22 @@ def load_config():
                 for zk, zv in DEFAULT_CONFIG["zones"].items():
                     if zk not in data["zones"]:
                         data["zones"][zk] = zv.copy()
+                    else:
+                        zentry = data["zones"][zk]
+                        if "line" not in zentry:
+                            if "line_a" in zentry and "line_b" in zentry:
+                                la = zentry["line_a"]
+                                lb = zentry["line_b"]
+                                zentry["line"] = {
+                                    "x1": la.get("x1", 0.1),
+                                    "y1": (la.get("y1", 0.5) + lb.get("y1", 0.5)) / 2.0,
+                                    "x2": la.get("x2", 0.4),
+                                    "y2": (la.get("y2", 0.5) + lb.get("y2", 0.5)) / 2.0,
+                                }
+                            else:
+                                zentry["line"] = zv["line"].copy()
+                        if "entry_dir" not in zentry:
+                            zentry["entry_dir"] = 1
             # Deep merge auto_reset
             if "auto_reset" not in data or not isinstance(data["auto_reset"], dict):
                 data["auto_reset"] = DEFAULT_CONFIG["auto_reset"].copy()

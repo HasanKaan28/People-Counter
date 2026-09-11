@@ -99,20 +99,43 @@ class PersonTracker:
         child_threshold = self.config.get("child_height_threshold", 160)
         conf = self.config.get("model_confidence", 0.35)
 
-        # Parse zones
+        # Parse zones (Single line per door with directional normal vector)
         zones_cfg = self.config.get("zones", {})
         parsed_zones = {}
         for zk in ["men", "women"]:
             zdata = zones_cfg.get(zk, {})
             if zdata.get("enabled", True):
-                la = zdata.get("line_a", {})
-                lb = zdata.get("line_b", {})
+                line_data = zdata.get("line")
+                if not line_data:
+                    # Backward compatibility for old line_a / line_b format
+                    la = zdata.get("line_a", {})
+                    lb = zdata.get("line_b", {})
+                    line_data = {
+                        "x1": la.get("x1", 0.1),
+                        "y1": (la.get("y1", 0.5) + lb.get("y1", 0.5)) / 2.0,
+                        "x2": la.get("x2", 0.4),
+                        "y2": (la.get("y2", 0.5) + lb.get("y2", 0.5)) / 2.0,
+                    }
+
+                p1 = (int(line_data.get("x1", 0.1) * w_img), int(line_data.get("y1", 0.5) * h_img))
+                p2 = (int(line_data.get("x2", 0.4) * w_img), int(line_data.get("y2", 0.5) * h_img))
+                entry_dir = int(zdata.get("entry_dir", 1))
+
+                dx = p2[0] - p1[0]
+                dy = p2[1] - p1[1]
+                nx = -dy * entry_dir
+                ny = dx * entry_dir
+                norm_len = (nx * nx + ny * ny) ** 0.5
+                unx = nx / norm_len if norm_len > 0 else 0.0
+                uny = ny / norm_len if norm_len > 0 else 1.0
+
                 parsed_zones[zk] = {
                     "name": zdata.get("name", zk.capitalize()),
-                    "p1_a": (int(la.get("x1", 0.1) * w_img), int(la.get("y1", 0.4) * h_img)),
-                    "p2_a": (int(la.get("x2", 0.4) * w_img), int(la.get("y2", 0.4) * h_img)),
-                    "p1_b": (int(lb.get("x1", 0.1) * w_img), int(lb.get("y1", 0.6) * h_img)),
-                    "p2_b": (int(lb.get("x2", 0.4) * w_img), int(lb.get("y2", 0.6) * h_img)),
+                    "p1": p1,
+                    "p2": p2,
+                    "entry_dir": entry_dir,
+                    "normal": (nx, ny),
+                    "unit_normal": (unx, uny)
                 }
 
         # Fallback single line if zones not configured
@@ -147,10 +170,10 @@ class PersonTracker:
                 box_w = x2 - x1
                 box_h = y2 - y1
 
-                # Ground contact / foot position
-                foot_point = (int((x1 + x2) / 2), int(y2))
+                # For overhead / ceiling cameras, torso/center point is most reliable
+                body_point = (int((x1 + x2) / 2), int(y1 * 0.45 + y2 * 0.55))
 
-                # Height smoothing
+                # Height smoothing for Adult/Child classification
                 self.track_heights[track_id].append(box_h)
                 if len(self.track_heights[track_id]) > 10:
                     self.track_heights[track_id].pop(0)
@@ -169,60 +192,52 @@ class PersonTracker:
                 })
 
                 history = self.track_history[track_id]
-                history.append(foot_point)
+                history.append(body_point)
 
-                # Need at least 2 points to check intersection
+                # Crossing detection
                 if len(history) >= 2:
-                    prev_pt = history[-2]
                     curr_pt = history[-1]
+                    prev_pt = history[-2]
 
                     if not use_fallback_single:
-                        # Process dual lines for each zone (Men / Women)
                         for zk, zinfo in parsed_zones.items():
                             cd_key = (int(track_id), zk)
                             if self.event_cooldown.get(cd_key, 0) > now:
                                 continue
 
-                            # Check Line A intersection
-                            hit_a = self._intersect(prev_pt, curr_pt, zinfo["p1_a"], zinfo["p2_a"])
-                            # Check Line B intersection
-                            hit_b = self._intersect(prev_pt, curr_pt, zinfo["p1_b"], zinfo["p2_b"])
+                            p1 = zinfo["p1"]
+                            p2 = zinfo["p2"]
 
-                            # Handle Line A hit
-                            if hit_a:
-                                last_hit_a = self.last_line_hit.get((track_id, zk, 'A'), 0)
-                                if now - last_hit_a > 0.6:
-                                    self.last_line_hit[(track_id, zk, 'A')] = now
-                                    prev_state = self.zone_cross_state[track_id].get(zk)
+                            # Check trajectory segment intersection with door line
+                            crossed = self._intersect(prev_pt, curr_pt, p1, p2)
+                            if not crossed and len(history) >= 3:
+                                crossed = self._intersect(history[-3], curr_pt, p1, p2)
+                            if not crossed and len(history) >= 4:
+                                crossed = self._intersect(history[-4], curr_pt, p1, p2)
 
-                                    if prev_state and prev_state[0] == 'B' and (now - prev_state[1]) < 9.0:
-                                        # Crossed B then A -> EXIT (ÇIKIŞ)!
-                                        self.event_cooldown[cd_key] = now + 3.0
-                                        self.zone_cross_state[track_id].pop(zk, None)
-                                        self.last_event_flash[zk] = ('out', now)
-                                        if self.on_event_callback:
-                                            self.on_event_callback(zk, "out", person_type, int(track_id))
-                                    else:
-                                        # First crossed Line A
-                                        self.zone_cross_state[track_id][zk] = ('A', now)
+                            if crossed:
+                                # Determine motion direction vector using smoothed recent trajectory
+                                start_idx = max(0, len(history) - 5)
+                                ref_pt = history[start_idx]
+                                vx = curr_pt[0] - ref_pt[0]
+                                vy = curr_pt[1] - ref_pt[1]
 
-                            # Handle Line B hit
-                            if hit_b:
-                                last_hit_b = self.last_line_hit.get((track_id, zk, 'B'), 0)
-                                if now - last_hit_b > 0.6:
-                                    self.last_line_hit[(track_id, zk, 'B')] = now
-                                    prev_state = self.zone_cross_state[track_id].get(zk)
+                                if (vx * vx + vy * vy) < 4:
+                                    vx = curr_pt[0] - prev_pt[0]
+                                    vy = curr_pt[1] - prev_pt[1]
 
-                                    if prev_state and prev_state[0] == 'A' and (now - prev_state[1]) < 9.0:
-                                        # Crossed A then B -> ENTRY (GİRİŞ)!
-                                        self.event_cooldown[cd_key] = now + 3.0
-                                        self.zone_cross_state[track_id].pop(zk, None)
-                                        self.last_event_flash[zk] = ('in', now)
-                                        if self.on_event_callback:
-                                            self.on_event_callback(zk, "in", person_type, int(track_id))
-                                    else:
-                                        # First crossed Line B
-                                        self.zone_cross_state[track_id][zk] = ('B', now)
+                                unx, uny = zinfo["unit_normal"]
+                                dot = vx * unx + vy * uny
+
+                                # Filter out sideways scraping movement
+                                if abs(dot) > 0.4:
+                                    event_type = "in" if dot > 0 else "out"
+                                    # 2.5s cooldown prevents duplicate counting during threshold crossing
+                                    self.event_cooldown[cd_key] = now + 2.5
+                                    self.last_event_flash[zk] = (event_type, now)
+
+                                    if self.on_event_callback:
+                                        self.on_event_callback(zk, event_type, person_type, int(track_id))
                     else:
                         # Fallback single line logic
                         if track_id not in self.counted_in_ids:
@@ -251,61 +266,68 @@ class PersonTracker:
                     cv2.polylines(frame, [pts], False, box_color, 2)
 
         # -----------------------------------------------------------------
-        # RENDER DUAL-ZONE TRIPWIRE LINES
+        # RENDER SINGLE TRIPWIRE LINE PER DOOR WITH ENTRY ARROW
         # -----------------------------------------------------------------
         if not use_fallback_single:
-            # Color schemes (BGR format):
-            # Men: Line A = Light Cyan (255, 210, 80), Line B = Deep Blue (230, 100, 20)
-            # Women: Line A = Soft Pink (200, 120, 255), Line B = Purple/Magenta (190, 40, 200)
             line_styles = {
                 "men": {
-                    "color_a": (255, 210, 80),
-                    "color_b": (230, 110, 30),
-                    "label": "MEN"
+                    "color": (255, 210, 80),   # Sky Blue (BGR)
+                    "label": "ERKEK KAPISI"
                 },
                 "women": {
-                    "color_a": (200, 120, 255),
-                    "color_b": (190, 40, 200),
-                    "label": "WOMEN"
+                    "color": (200, 120, 255),  # Soft Pink (BGR)
+                    "label": "KADIN KAPISI"
                 }
             }
 
             for zk, zinfo in parsed_zones.items():
-                style = line_styles.get(zk, {"color_a": (0, 255, 255), "color_b": (255, 255, 0), "label": zk.upper()})
-                color_a = style["color_a"]
-                color_b = style["color_b"]
+                style = line_styles.get(zk, {"color": (0, 255, 255), "label": zk.upper()})
+                color = style["color"]
+                flash_text = None
 
                 flash = self.last_event_flash.get(zk)
-                if flash and (now - flash[1]) < 0.9:
+                if flash and (now - flash[1]) < 1.2:
                     if flash[0] == 'in':
-                        color_a = color_b = (0, 255, 0)      # Bright Green for IN
+                        color = (0, 255, 0)         # Bright Green for IN
+                        flash_text = "+1 GIRIS"
                     else:
-                        color_a = color_b = (0, 165, 255)    # Orange for OUT
+                        color = (0, 165, 255)       # Orange for OUT
+                        flash_text = "+1 CIKIS"
 
-                # Draw Line A (Outer / Dış Çizgi - Kapı Önü)
-                p1_a, p2_a = zinfo["p1_a"], zinfo["p2_a"]
-                cv2.line(frame, p1_a, p2_a, color_a, 2)
-                cv2.circle(frame, p1_a, 5, color_a, -1)
-                cv2.circle(frame, p2_a, 5, color_a, -1)
-                mid_a = ((p1_a[0] + p2_a[0]) // 2, (p1_a[1] + p2_a[1]) // 2)
-                cv2.putText(frame, f"{style['label']} 1 (DIS)", (mid_a[0] - 45, mid_a[1] - 8),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.45, color_a, 1, cv2.LINE_AA)
+                p1 = zinfo["p1"]
+                p2 = zinfo["p2"]
+                unx, uny = zinfo["unit_normal"]
 
-                # Draw Line B (Inner / İç Çizgi - Tuvalet İçi)
-                p1_b, p2_b = zinfo["p1_b"], zinfo["p2_b"]
-                cv2.line(frame, p1_b, p2_b, color_b, 2)
-                cv2.circle(frame, p1_b, 5, color_b, -1)
-                cv2.circle(frame, p2_b, 5, color_b, -1)
-                mid_b = ((p1_b[0] + p2_b[0]) // 2, (p1_b[1] + p2_b[1]) // 2)
-                cv2.putText(frame, f"{style['label']} 2 (IC)", (mid_b[0] - 40, mid_b[1] - 8),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.45, color_b, 1, cv2.LINE_AA)
+                # 1. Door tripwire line
+                cv2.line(frame, p1, p2, color, 3, cv2.LINE_AA)
+                cv2.circle(frame, p1, 5, color, -1, cv2.LINE_AA)
+                cv2.circle(frame, p2, 5, color, -1, cv2.LINE_AA)
 
-                # Draw Direction indicator between lines (1 -> 2 = GİRİŞ)
-                arrow_start = mid_a
-                arrow_end = mid_b
-                cv2.arrowedLine(frame, arrow_start, arrow_end, color_b, 1, tipLength=0.25)
+                # 2. Door midpoint
+                mid_x = (p1[0] + p2[0]) // 2
+                mid_y = (p1[1] + p2[1]) // 2
+                mid = (mid_x, mid_y)
+
+                # 3. Direction arrow (Entry arrow pointing inside)
+                arrow_len = 36
+                arrow_end = (int(mid_x + unx * arrow_len), int(mid_y + uny * arrow_len))
+                cv2.arrowedLine(frame, mid, arrow_end, color, 2, tipLength=0.35)
+
+                # 4. Text labels
+                label_x = min(p1[0], p2[0]) + 5
+                label_y = min(p1[1], p2[1]) - 10
+                cv2.putText(frame, style["label"], (label_x, max(label_y, 25)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.48, color, 2, cv2.LINE_AA)
+
+                arrow_text_x = int(mid_x + unx * (arrow_len + 12))
+                arrow_text_y = int(mid_y + uny * (arrow_len + 12))
+                cv2.putText(frame, "GIRIS", (arrow_text_x - 18, arrow_text_y + 4),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.40, color, 1, cv2.LINE_AA)
+
+                if flash_text:
+                    cv2.putText(frame, flash_text, (mid_x - 30, mid_y - 12),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.65, color, 2, cv2.LINE_AA)
         else:
-            # Fallback single line render
             fcolor = (0, 255, 255)
             flash = self.last_event_flash.get("general")
             if flash and (now - flash[1]) < 0.8:
@@ -324,17 +346,17 @@ class PersonTracker:
         tot_rev = self.stats.get("total_revenue", 0.0)
 
         # Men stats HUD
-        men_text = f"MEN: In {men_stats.get('in', 0)} | Out {men_stats.get('out', 0)} | Inside {men_stats.get('inside', 0)}"
-        cv2.putText(frame, men_text, (15, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 210, 80), 2, cv2.LINE_AA)
+        men_text = f"ERKEK: Giris {men_stats.get('in', 0)} | Cikis {men_stats.get('out', 0)} | Dolu {men_stats.get('inside', 0)}"
+        cv2.putText(frame, men_text, (15, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (255, 210, 80), 2, cv2.LINE_AA)
 
         # Women stats HUD
-        women_text = f"WOMEN: In {women_stats.get('in', 0)} | Out {women_stats.get('out', 0)} | Inside {women_stats.get('inside', 0)}"
-        w_offset = max(280, int(w_img * 0.38))
-        cv2.putText(frame, women_text, (w_offset, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (200, 130, 255), 2, cv2.LINE_AA)
+        women_text = f"KADIN: Giris {women_stats.get('in', 0)} | Cikis {women_stats.get('out', 0)} | Dolu {women_stats.get('inside', 0)}"
+        w_offset = max(270, int(w_img * 0.38))
+        cv2.putText(frame, women_text, (w_offset, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (200, 130, 255), 2, cv2.LINE_AA)
 
         # Total revenue HUD
-        rev_text = f"REVENUE: ${int(tot_rev)}"
-        r_offset = max(580, int(w_img * 0.76))
-        cv2.putText(frame, rev_text, (r_offset, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (16, 185, 129), 2, cv2.LINE_AA)
+        rev_text = f"KASA: TL {int(tot_rev)}"
+        r_offset = max(560, int(w_img * 0.76))
+        cv2.putText(frame, rev_text, (r_offset, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (16, 185, 129), 2, cv2.LINE_AA)
 
         return frame, detections

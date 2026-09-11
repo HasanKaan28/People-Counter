@@ -11,15 +11,15 @@
             "name": "Men's Restroom",
             "name_tr": "Erkekler Tuvaleti",
             "enabled": true,
-            "line_a": {"x1": 0.08, "y1": 0.35, "x2": 0.42, "y2": 0.35},
-            "line_b": {"x1": 0.08, "y1": 0.60, "x2": 0.42, "y2": 0.60}
+            "line": {"x1": 0.08, "y1": 0.50, "x2": 0.42, "y2": 0.50},
+            "entry_dir": 1
         },
         "women": {
             "name": "Women's Restroom",
             "name_tr": "Kadınlar Tuvaleti",
             "enabled": true,
-            "line_a": {"x1": 0.58, "y1": 0.35, "x2": 0.92, "y2": 0.35},
-            "line_b": {"x1": 0.58, "y1": 0.60, "x2": 0.92, "y2": 0.60}
+            "line": {"x1": 0.58, "y1": 0.50, "x2": 0.92, "y2": 0.50},
+            "entry_dir": 1
         }
     },
     "line_coords": {

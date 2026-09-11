@@ -379,11 +379,30 @@ namespace PeopleCounterInstaller
                 AppendLog("[5/5] Creating application shortcuts...");
 
                 string installedExe = Path.Combine(targetDir, "PeopleCounter.exe");
-                string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                string shortcutPath = Path.Combine(desktop, "People Counter.lnk");
+                string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
-                CreateShortcut(shortcutPath, installedExe, targetDir, "AI Camera People Counter & Revenue Tracker");
-                AppendLog("[OK] Desktop shortcut created: 'People Counter'");
+                string[] candidateDesktops = new string[]
+                {
+                    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                    Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory),
+                    Path.Combine(userProfile, "Desktop"),
+                    Path.Combine(userProfile, "OneDrive", "Desktop"),
+                    Path.Combine(userProfile, "OneDrive", "Masaüstü")
+                };
+
+                foreach (string d in candidateDesktops)
+                {
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(d) && Directory.Exists(d))
+                        {
+                            string scPath = Path.Combine(d, "People Counter.lnk");
+                            CreateShortcut(scPath, installedExe, targetDir, "AI Camera People Counter & Revenue Tracker");
+                            AppendLog("[OK] Desktop shortcut created: " + scPath);
+                        }
+                    }
+                    catch { }
+                }
 
                 string startMenu = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu), "Programs");
                 string smShortcut = Path.Combine(startMenu, "People Counter.lnk");

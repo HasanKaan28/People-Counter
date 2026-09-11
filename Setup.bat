@@ -105,7 +105,7 @@ echo.
 :: STEP 4: Desktop Shortcut
 :: ----------------------------------------------------------------------
 echo [4/4] Creating Desktop shortcut...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws = New-Object -ComObject WScript.Shell; $desktop = [Environment]::GetFolderPath('Desktop'); $s = $ws.CreateShortcut((Join-Path $desktop 'People Counter.lnk')); $s.TargetPath = (Join-Path '%~dp0' 'PeopleCounter.exe'); $s.WorkingDirectory = '%~dp0'; $s.Description = 'AI Camera People Counter & Revenue Tracker'; $s.IconLocation = 'shell32.dll,19'; $s.Save(); try { $ps = $ws.CreateShortcut('C:\Users\Public\Desktop\People Counter.lnk'); $ps.TargetPath = (Join-Path '%~dp0' 'PeopleCounter.exe'); $ps.WorkingDirectory = '%~dp0'; $ps.IconLocation = 'shell32.dll,19'; $ps.Save() } catch {}" >nul 2>&1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws = New-Object -ComObject WScript.Shell; $target = (Join-Path '%~dp0' 'PeopleCounter.exe'); $d1 = [Environment]::GetFolderPath('Desktop'); $d2 = 'C:\Users\Public\Desktop'; $d3 = (Join-Path $env:USERPROFILE 'OneDrive\Desktop'); $d4 = (Join-Path $env:USERPROFILE 'Desktop'); foreach($dir in @($d1,$d2,$d3,$d4)) { if (Test-Path $dir) { try { $s = $ws.CreateShortcut((Join-Path $dir 'People Counter.lnk')); $s.TargetPath = $target; $s.WorkingDirectory = '%~dp0'; $s.Description = 'AI Camera People Counter'; $s.IconLocation = 'shell32.dll,19'; $s.Save() } catch {} } }" >nul 2>&1
 
 echo.
 echo =====================================================================

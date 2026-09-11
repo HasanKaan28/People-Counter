@@ -149,6 +149,8 @@ namespace PeopleCounter
                 }
             }
 
+            EnsureDesktopShortcuts(Path.Combine(baseDir, "PeopleCounter.exe"), baseDir);
+
             Console.WriteLine("Starting AI People Counter server...");
             Console.WriteLine("Web Dashboard: http://localhost:8000");
             Console.WriteLine();
@@ -181,6 +183,42 @@ namespace PeopleCounter
                 Console.WriteLine("Press any key to exit...");
                 Console.ReadKey();
             }
+        }
+
+        static void EnsureDesktopShortcuts(string targetExe, string workDir)
+        {
+            try
+            {
+                string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string[] candidateDesktops = new string[]
+                {
+                    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                    Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory),
+                    Path.Combine(userProfile, "Desktop"),
+                    Path.Combine(userProfile, "OneDrive", "Desktop"),
+                    Path.Combine(userProfile, "OneDrive", "Masaüstü")
+                };
+
+                foreach (string d in candidateDesktops)
+                {
+                    if (!string.IsNullOrEmpty(d) && Directory.Exists(d))
+                    {
+                        string sc = Path.Combine(d, "People Counter.lnk");
+                        string psCmd = string.Format(
+                            "$w = New-Object -ComObject WScript.Shell; $s = $w.CreateShortcut('{0}'); $s.TargetPath = '{1}'; $s.WorkingDirectory = '{2}'; $s.Description = 'AI Camera People Counter & Revenue Tracker'; $s.IconLocation = 'shell32.dll,19'; $s.Save()",
+                            sc.Replace("'", "''"), targetExe.Replace("'", "''"), workDir.Replace("'", "''")
+                        );
+                        Process p = new Process();
+                        p.StartInfo.FileName = "powershell.exe";
+                        p.StartInfo.Arguments = "-NoProfile -Command \"" + psCmd + "\"";
+                        p.StartInfo.CreateNoWindow = true;
+                        p.StartInfo.UseShellExecute = false;
+                        p.Start();
+                        p.WaitForExit(3000);
+                    }
+                }
+            }
+            catch { }
         }
     }
 }
