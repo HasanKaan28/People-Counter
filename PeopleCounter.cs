@@ -58,8 +58,8 @@ namespace PeopleCounter
                     return;
                 }
 
-                MessageBox.Show("AI Kamera Kişi Sayacı kurulum dosyaları bulunamadı.\nLütfen 'PeopleCounter-Setup.exe' dosyasını çalıştırın.",
-                                "Kurulum Gerekli", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("AI Camera People Counter installation files were not found.\nPlease run 'PeopleCounter-Setup.exe' to complete installation.",
+                                "Setup Required", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -80,8 +80,8 @@ namespace PeopleCounter
                     }
                     if (!File.Exists(venvPython))
                     {
-                        MessageBox.Show("Python sanal ortamı (.venv) bulunamadı. Lütfen PeopleCounter-Setup.exe ile kurulum yapın.",
-                                        "Kurulum Eksik", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show("Python virtual environment (.venv) was not found. Please run PeopleCounter-Setup.exe to perform setup.",
+                                        "Setup Incomplete", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
                 }
@@ -106,8 +106,8 @@ namespace PeopleCounter
 
                 if (!isReady)
                 {
-                    MessageBox.Show("Yapay zeka kamera servisi başlatılamadı. Lütfen 'server.log' dosyasını kontrol edin.",
-                                    "Başlatma Hatası", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("AI vision camera service failed to start. Please inspect 'server.log' for details.",
+                                    "Startup Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     StopBackgroundServer();
                     return;
                 }
@@ -241,7 +241,7 @@ namespace PeopleCounter
         static void SetupSystemTray()
         {
             trayIcon = new NotifyIcon();
-            trayIcon.Text = "AI Kamera Kişi Sayacı (Çalışıyor)";
+            trayIcon.Text = "AI Camera People Counter (Running)";
 
             string icoPath = Path.Combine(baseDir, "app.ico");
             if (File.Exists(icoPath))
@@ -258,18 +258,18 @@ namespace PeopleCounter
             menu.ForeColor = Color.White;
             menu.ShowImageMargin = false;
 
-            ToolStripMenuItem itemOpen = new ToolStripMenuItem("🖥️  Programı Aç (Pencere)");
+            ToolStripMenuItem itemOpen = new ToolStripMenuItem("🖥️  Open Application Window");
             itemOpen.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             itemOpen.Click += (s, e) => LaunchAppWindow();
             menu.Items.Add(itemOpen);
 
-            ToolStripMenuItem itemBrowser = new ToolStripMenuItem("🌐  Tarayıcıda Aç");
+            ToolStripMenuItem itemBrowser = new ToolStripMenuItem("🌐  Open in Web Browser");
             itemBrowser.Click += (s, e) => Process.Start(new ProcessStartInfo(appUrl) { UseShellExecute = true });
             menu.Items.Add(itemBrowser);
 
             menu.Items.Add(new ToolStripSeparator());
 
-            ToolStripMenuItem itemReports = new ToolStripMenuItem("📁  Raporlar Klasörünü Aç");
+            ToolStripMenuItem itemReports = new ToolStripMenuItem("📁  Open Daily Reports Folder");
             itemReports.Click += (s, e) =>
             {
                 string repDir = Path.Combine(baseDir, "daily_reports");
@@ -278,7 +278,7 @@ namespace PeopleCounter
             };
             menu.Items.Add(itemReports);
 
-            ToolStripMenuItem itemRestart = new ToolStripMenuItem("🔄  Servisi Yeniden Başlat");
+            ToolStripMenuItem itemRestart = new ToolStripMenuItem("🔄  Restart AI Service");
             itemRestart.Click += (s, e) =>
             {
                 StopBackgroundServer();
@@ -293,7 +293,7 @@ namespace PeopleCounter
 
             menu.Items.Add(new ToolStripSeparator());
 
-            ToolStripMenuItem itemExit = new ToolStripMenuItem("❌  Programdan Tamamen Çık");
+            ToolStripMenuItem itemExit = new ToolStripMenuItem("❌  Exit Application");
             itemExit.ForeColor = Color.FromArgb(248, 113, 113);
             itemExit.Click += (s, e) =>
             {
@@ -306,7 +306,7 @@ namespace PeopleCounter
             trayIcon.Visible = true;
 
             trayIcon.DoubleClick += (s, e) => LaunchAppWindow();
-            trayIcon.ShowBalloonTip(3000, "AI Kamera Kişi Sayacı", "Program arka planda kesintisiz çalışıyor. Simgeden kontrol edebilirsiniz.", ToolTipIcon.Info);
+            trayIcon.ShowBalloonTip(3000, "AI Camera People Counter", "Application is running continuously in the background. Access anytime from the system tray.", ToolTipIcon.Info);
         }
 
         static void EnsureDesktopShortcuts(string targetExe, string workDir)
@@ -353,7 +353,7 @@ namespace PeopleCounter
     {
         public SplashScreen()
         {
-            this.Text = "AI Kamera Kişi Sayacı";
+            this.Text = "AI Camera People Counter";
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Size = new Size(460, 210);
@@ -380,7 +380,7 @@ namespace PeopleCounter
             };
 
             Label lblTitle = new Label();
-            lblTitle.Text = "AI Kamera Kişi Sayacı";
+            lblTitle.Text = "AI Camera People Counter";
             lblTitle.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
             lblTitle.ForeColor = Color.White;
             lblTitle.Location = new Point(28, 30);
@@ -388,7 +388,7 @@ namespace PeopleCounter
             this.Controls.Add(lblTitle);
 
             Label lblSub = new Label();
-            lblSub.Text = "Yapay Zeka Görüşü & Canlı Kasa Takip Sistemi";
+            lblSub.Text = "AI Vision & Real-Time Venue Revenue System";
             lblSub.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
             lblSub.ForeColor = Color.FromArgb(56, 189, 248);
             lblSub.Location = new Point(30, 68);
@@ -396,7 +396,7 @@ namespace PeopleCounter
             this.Controls.Add(lblSub);
 
             Label lblStatus = new Label();
-            lblStatus.Text = "Sistem ve yapay zeka servisi başlatılıyor...";
+            lblStatus.Text = "Initializing AI vision engine and camera service...";
             lblStatus.Font = new Font("Segoe UI", 8.5F, FontStyle.Regular);
             lblStatus.ForeColor = Color.FromArgb(148, 163, 184);
             lblStatus.Location = new Point(30, 115);

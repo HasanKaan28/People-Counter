@@ -16,9 +16,9 @@ The web interface defaults to **English** and includes an instant **Language Swi
 ## ✨ Key Capabilities
 
 - 🚻 **Dual-Zone Restroom Tracking (Men & Women):** Track Men's and Women's restrooms simultaneously on a single camera view, with dedicated counters and live inside occupancy metrics.
-- 🚪 **Bidirectional Same-Door Tracking (Tek Kapı Çift Yönlü Takip):** In real-world restrooms where visitors enter and exit through the same single door, two parallel virtual tripwires (1. Outer / Corridor & 2. Inner / Restroom) differentiate entry from exit. Entering (1 ➔ 2) charges the fee and increments occupancy; exiting (2 ➔ 1) is free and decrements occupancy!
-- 🟢 **Live Restroom Occupancy Panel (Canlı Doluluk Göstergesi):** Dedicated real-time dashboard component displaying `EMPTY (BOŞ)` or `OCCUPIED (DOLU)` status with exact headcounts inside each restroom.
-- ⏰ **Scheduled Nightly Auto-Reset (Gece 00:00 Otomatik Sıfırlama):** Automatically archives the day's turnover and visitor counts to the database / Google Sheets at midnight (00:00) and resets the counter for the fresh day.
+- 🚪 **Bidirectional Same-Door Tracking:** For restrooms where visitors enter and exit through the same doorway, single-line overhead tripwire tracking with arrow directional vectoring differentiates entries from exits. Entering in the arrow direction charges the fee and increments occupancy; exiting opposite the arrow is free and decrements occupancy.
+- 🟢 **Live Restroom Occupancy Panel:** Dedicated real-time dashboard component displaying `EMPTY` or `OCCUPIED` status with exact headcounts inside each restroom.
+- ⏰ **Scheduled Nightly Auto-Reset:** Automatically archives the day's turnover and visitor counts to the database / Google Sheets at midnight (00:00) and resets the counter for the fresh day.
 - 🧠 **Deep Learning Person Detection:** Powered by **YOLOv8** and **ByteTrack** for high-accuracy multi-object tracking across varying lighting conditions.
 - 📏 **Adult vs. Child Height Classification:** Calibrated pixel-height thresholding enables differentiated counting for children and adults with customized admission pricing.
 - 💰 **Automated Revenue Accounting:** Real-time revenue accumulator multiplying verified crossings by customized tariffs with live register display.

@@ -48,8 +48,7 @@ namespace PeopleCounterInstaller
 
         private void InitializeComponent()
         {
-            bool isTr = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("tr", StringComparison.OrdinalIgnoreCase);
-            this.Text = isTr ? "AI Kişi Sayacı & Ciro Takip - Kurulum Sihirbazı" : "AI Camera People Counter - Setup Wizard";
+            this.Text = "AI Camera People Counter - Setup Wizard";
             this.Size = new Size(580, 520);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -66,7 +65,7 @@ namespace PeopleCounterInstaller
             this.Controls.Add(pnlHeader);
 
             Label lblTitle = new Label();
-            lblTitle.Text = isTr ? "AI Kamera Kişi Sayacı & Gelir Takip Sistemi" : "AI Camera People Counter & Revenue Tracker";
+            lblTitle.Text = "AI Camera People Counter & Revenue Tracker";
             lblTitle.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             lblTitle.ForeColor = Color.FromArgb(16, 185, 129); // Emerald-500
             lblTitle.Location = new Point(20, 12);
@@ -74,7 +73,7 @@ namespace PeopleCounterInstaller
             pnlHeader.Controls.Add(lblTitle);
 
             Label lblSubtitle = new Label();
-            lblSubtitle.Text = isTr ? "Tek Tıkla Otomatik Kurulum Sihirbazı & Çalıştırıcı" : "One-Click Automated Setup Wizard & Dependency Installer";
+            lblSubtitle.Text = "One-Click Automated Setup Wizard & Dependency Installer";
             lblSubtitle.Font = new Font("Segoe UI", 8.5F, FontStyle.Regular);
             lblSubtitle.ForeColor = Color.FromArgb(148, 163, 184); // Slate-400
             lblSubtitle.Location = new Point(22, 38);
@@ -86,7 +85,7 @@ namespace PeopleCounterInstaller
 
             // Destination Folder Label
             Label lblDest = new Label();
-            lblDest.Text = isTr ? "Kurulum Dizini (Varsayılan):" : "Installation Directory:";
+            lblDest.Text = "Installation Directory:";
             lblDest.Location = new Point(20, top);
             lblDest.AutoSize = true;
             lblDest.ForeColor = Color.FromArgb(226, 232, 240);
@@ -107,7 +106,7 @@ namespace PeopleCounterInstaller
 
             // Browse Button
             btnBrowse = new Button();
-            btnBrowse.Text = isTr ? "Gözat..." : "Browse...";
+            btnBrowse.Text = "Browse...";
             btnBrowse.Location = new Point(450, top - 1);
             btnBrowse.Size = new Size(95, 27);
             btnBrowse.BackColor = Color.FromArgb(51, 65, 85);
@@ -121,7 +120,7 @@ namespace PeopleCounterInstaller
 
             // Progress Status Label
             lblStatus = new Label();
-            lblStatus.Text = isTr ? "Kuruluma hazır. 'Kurulumu Başlat' butonuna tıklayın." : "Ready to install. Click 'Install & Launch' to start.";
+            lblStatus.Text = "Ready to install. Click 'Install & Launch' to start.";
             lblStatus.Location = new Point(20, top);
             lblStatus.Size = new Size(525, 20);
             lblStatus.ForeColor = Color.FromArgb(56, 189, 248); // Sky-400
@@ -156,7 +155,7 @@ namespace PeopleCounterInstaller
 
             // Checkbox: Launch after finish
             chkLaunch = new CheckBox();
-            chkLaunch.Text = isTr ? "Kurulum bittiğinde program otomatik açılsın" : "Launch People Counter immediately when finished";
+            chkLaunch.Text = "Launch People Counter immediately when finished";
             chkLaunch.Checked = true;
             chkLaunch.Location = new Point(20, top);
             chkLaunch.AutoSize = true;
@@ -165,7 +164,7 @@ namespace PeopleCounterInstaller
 
             // Install & Launch Button
             btnInstall = new Button();
-            btnInstall.Text = isTr ? "Kurulumu Başlat" : "Install & Launch";
+            btnInstall.Text = "Install & Launch";
             btnInstall.Location = new Point(320, top - 3);
             btnInstall.Size = new Size(135, 34);
             btnInstall.BackColor = Color.FromArgb(16, 185, 129); // Emerald-500
@@ -178,7 +177,7 @@ namespace PeopleCounterInstaller
 
             // Close Button
             btnClose = new Button();
-            btnClose.Text = isTr ? "İptal" : "Cancel";
+            btnClose.Text = "Cancel";
             btnClose.Location = new Point(465, top - 3);
             btnClose.Size = new Size(80, 34);
             btnClose.BackColor = Color.FromArgb(51, 65, 85);

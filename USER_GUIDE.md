@@ -39,28 +39,27 @@ This system monitors your Hikvision / IP RTSP security camera or USB webcam 24/7
 
 ---
 
-## 🚪 3. Dual Restroom Tripwires: Same-Door Operation (Tek Kapı Giriş-Çıkış)
-
+## 🚪 3. Dual Restroom Tripwires: Single-Line Overhead Operation
 In public restrooms, each restroom (Men's / Women's) typically has **one doorway for both entering and exiting**:
-- **Line 1 (Dış Çizgi - Outer):** Placed right in front of the door in the hallway/waiting area (near the cashier desk).
-- **Line 2 (İç Çizgi - Inner):** Placed just inside the doorway.
-- **Entering (Line 1 ➔ Line 2):** Counted as **GİRİŞ / ENTRY** (+1 In, +1 Inside occupancy, adds admission fee).
-- **Exiting (Line 2 ➔ Line 1):** Counted as **ÇIKIŞ / EXIT** through the same door (+1 Out, -1 Inside occupancy, free of charge).
+- **Single Line per Door (Overhead Camera Optimized):** Positioned directly across the threshold of the doorway.
+- **Direction Arrow (Entry Vector):** Visual arrow pointing into the restroom indicates the entrance path.
+- **Entering (Crossing in Arrow Direction):** Counted as **ENTRY** (+1 In, +1 Inside occupancy, adds admission fee).
+- **Exiting (Crossing Opposite to Arrow):** Counted as **EXIT** through the same door (+1 Out, -1 Inside occupancy, free of charge).
 
-The **Live Restroom Occupancy Panel** on the dashboard displays whether each restroom is **EMPTY (BOŞ)** or **OCCUPIED (DOLU)** along with the real-time headcount inside.
+The **Live Restroom Occupancy Panel** on the dashboard displays whether each restroom is **EMPTY** or **OCCUPIED** along with the real-time headcount inside.
 
 ### How to set the lines:
-1. Click **"Edit Tripwires (2+2)"** above the camera stream.
-2. Select the line you want to position:
-   - 🚹 **Men Door: 1. Outer (Corridor)** & 🚹 **Men Door: 2. Inner (Restroom)**
-   - 🚺 **Women Door: 1. Outer (Corridor)** & 🚺 **Women Door: 2. Inner (Restroom)**
-3. Click **two points** on the video canvas (Point 1: Start, Point 2: End) for each line.
-4. The system automatically saves your lines and advances to the next.
+1. Click **"Edit Door Lines (1+1)"** above the camera stream.
+2. Select the door you want to position:
+   - 🚹 **Men Door Line**
+   - 🚺 **Women Door Line**
+3. Click **two points** on the video canvas across the door opening (Point 1: Start, Point 2: End).
+4. If the entry arrow points the wrong way, click **"Flip Dir"** next to the door button to reverse it immediately.
 5. Click **"Default Layout"** at any time to reset to standard side-by-side lines (Left: Men, Right: Women).
 
 ---
 
-## ⏰ 4. Scheduled Nightly Auto-Reset (Gece 00:00 Otomatik Sıfırlama)
+## ⏰ 4. Scheduled Nightly Auto-Reset
 
 - In **Settings**, **Scheduled Nightly Auto-Reset** is enabled by default at **00:00** (midnight).
 - When midnight strikes, the system automatically:

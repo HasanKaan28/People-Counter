@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="doc-title">AI Kamera Kişi Sayacı & Gelir Takip Sistemi</title>
+    <title id="doc-title">AI Restroom People Counter & Revenue Tracker</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <meta name="application-name" content="AI Kamera Kişi Sayacı">
+    <meta name="application-name" content="AI Camera People Counter">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
@@ -102,7 +102,7 @@
             </button>
 
             <!-- Fullscreen Mode -->
-            <button onclick="toggleFullScreen()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition" title="Tam Ekran / Fullscreen">
+            <button onclick="toggleFullScreen()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition" title="Fullscreen">
                 <i data-lucide="maximize" class="w-4 h-4"></i>
             </button>
         </div>
@@ -349,7 +349,7 @@
                             <button onclick="selectDrawingTarget('men')" id="btn-target-men" class="line-target-btn px-3 py-1 rounded-l-md text-xs font-bold border transition bg-sky-500/20 text-sky-300 border-sky-400 ring-2 ring-sky-400/40">
                                 🚹 <span data-i18n="btn_target_men">Men Door Line</span>
                             </button>
-                            <button onclick="flipEntryDirection('men')" title="Ters Giriş Yönü / Flip Direction" class="px-2.5 py-1 rounded-r-md text-xs font-bold border border-l-0 border-sky-500/50 bg-sky-900/40 hover:bg-sky-800/60 text-sky-200 transition flex items-center gap-1">
+                            <button onclick="flipEntryDirection('men')" title="Flip Entry Direction" class="px-2.5 py-1 rounded-r-md text-xs font-bold border border-l-0 border-sky-500/50 bg-sky-900/40 hover:bg-sky-800/60 text-sky-200 transition flex items-center gap-1">
                                 <i data-lucide="arrow-left-right" class="w-3 h-3"></i>
                                 <span data-i18n="btn_flip_arrow">Flip Dir</span>
                             </button>
@@ -360,7 +360,7 @@
                             <button onclick="selectDrawingTarget('women')" id="btn-target-women" class="line-target-btn px-3 py-1 rounded-l-md text-xs font-bold border transition bg-slate-900 text-slate-400 border-slate-700">
                                 🚺 <span data-i18n="btn_target_women">Women Door Line</span>
                             </button>
-                            <button onclick="flipEntryDirection('women')" title="Ters Giriş Yönü / Flip Direction" class="px-2.5 py-1 rounded-r-md text-xs font-bold border border-l-0 border-pink-500/50 bg-pink-900/40 hover:bg-pink-800/60 text-pink-200 transition flex items-center gap-1">
+                            <button onclick="flipEntryDirection('women')" title="Flip Entry Direction" class="px-2.5 py-1 rounded-r-md text-xs font-bold border border-l-0 border-pink-500/50 bg-pink-900/40 hover:bg-pink-800/60 text-pink-200 transition flex items-center gap-1">
                                 <i data-lucide="arrow-left-right" class="w-3 h-3"></i>
                                 <span data-i18n="btn_flip_arrow">Flip Dir</span>
                             </button>
@@ -853,12 +853,12 @@
             }
         };
 
-        // Active Language (DEFAULT: 'en')
-        let currentLang = localStorage.getItem('app_lang') || 'en';
+        // Active Language (DEFAULT: English)
+        let currentLang = localStorage.getItem('app_lang_v14') || 'en';
 
         function switchLanguage(lang) {
             currentLang = lang;
-            localStorage.setItem('app_lang', lang);
+            localStorage.setItem('app_lang_v14', lang);
             document.getElementById('lang-select').value = lang;
             document.documentElement.lang = lang;
 

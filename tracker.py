@@ -272,11 +272,11 @@ class PersonTracker:
             line_styles = {
                 "men": {
                     "color": (255, 210, 80),   # Sky Blue (BGR)
-                    "label": "ERKEK KAPISI"
+                    "label": "MEN DOOR"
                 },
                 "women": {
                     "color": (200, 120, 255),  # Soft Pink (BGR)
-                    "label": "KADIN KAPISI"
+                    "label": "WOMEN DOOR"
                 }
             }
 
@@ -289,10 +289,10 @@ class PersonTracker:
                 if flash and (now - flash[1]) < 1.2:
                     if flash[0] == 'in':
                         color = (0, 255, 0)         # Bright Green for IN
-                        flash_text = "+1 GIRIS"
+                        flash_text = "+1 ENTRY"
                     else:
                         color = (0, 165, 255)       # Orange for OUT
-                        flash_text = "+1 CIKIS"
+                        flash_text = "+1 EXIT"
 
                 p1 = zinfo["p1"]
                 p2 = zinfo["p2"]
@@ -321,7 +321,7 @@ class PersonTracker:
 
                 arrow_text_x = int(mid_x + unx * (arrow_len + 12))
                 arrow_text_y = int(mid_y + uny * (arrow_len + 12))
-                cv2.putText(frame, "GIRIS", (arrow_text_x - 18, arrow_text_y + 4),
+                cv2.putText(frame, "ENTRY", (arrow_text_x - 18, arrow_text_y + 4),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.40, color, 1, cv2.LINE_AA)
 
                 if flash_text:
@@ -346,16 +346,16 @@ class PersonTracker:
         tot_rev = self.stats.get("total_revenue", 0.0)
 
         # Men stats HUD
-        men_text = f"ERKEK: Giris {men_stats.get('in', 0)} | Cikis {men_stats.get('out', 0)} | Dolu {men_stats.get('inside', 0)}"
+        men_text = f"MEN: In {men_stats.get('in', 0)} | Out {men_stats.get('out', 0)} | Inside {men_stats.get('inside', 0)}"
         cv2.putText(frame, men_text, (15, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (255, 210, 80), 2, cv2.LINE_AA)
 
         # Women stats HUD
-        women_text = f"KADIN: Giris {women_stats.get('in', 0)} | Cikis {women_stats.get('out', 0)} | Dolu {women_stats.get('inside', 0)}"
+        women_text = f"WOMEN: In {women_stats.get('in', 0)} | Out {women_stats.get('out', 0)} | Inside {women_stats.get('inside', 0)}"
         w_offset = max(270, int(w_img * 0.38))
         cv2.putText(frame, women_text, (w_offset, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (200, 130, 255), 2, cv2.LINE_AA)
 
         # Total revenue HUD
-        rev_text = f"KASA: TL {int(tot_rev)}"
+        rev_text = f"REVENUE: ${int(tot_rev)}"
         r_offset = max(560, int(w_img * 0.76))
         cv2.putText(frame, rev_text, (r_offset, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (16, 185, 129), 2, cv2.LINE_AA)
 
