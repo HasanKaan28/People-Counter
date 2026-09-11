@@ -6,13 +6,14 @@ This system monitors your Hikvision / IP RTSP security camera or USB webcam 24/7
 
 ## 🚀 1. Launching the System
 
-### Option A: Direct Executable (`PeopleCounter.exe`)
-- Simply double-click **`PeopleCounter.exe`** (or the **`People Counter`** Desktop shortcut).
-- The application automatically initializes the environment and opens the web dashboard at `http://localhost:8000`.
+### Option A: 1-Click Standalone Installer (`PeopleCounter-Setup.exe` - Recommended)
+- Download and run **`PeopleCounter-Setup.exe`**.
+- Click **"Install & Launch"**.
+- It installs the application cleanly, creates a **"People Counter"** Desktop shortcut, and opens the live dashboard.
+- From then on, simply launch via your Desktop shortcut!
 
-### Option B: Windows Scripts
-- First time: Double-click **`Setup.bat`** (or `Install.bat`).
-- To launch: Double-click **`Start.bat`**.
+### Option B: Portable Directory (`PeopleCounter.exe`)
+- If using the extracted repository folder, double-click **`PeopleCounter.exe`** (or `Start.bat`).
 
 ### Option C: Linux / macOS
 ```bash

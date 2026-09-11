@@ -43,16 +43,14 @@ The web interface defaults to **English** and includes an instant **Language Swi
 
 ## 🚀 Quick Start
 
-### 1. Windows (Direct Executable & 1-Click Launch)
-1. Clone or download this repository:
-   ```bash
-   git clone https://github.com/HasanKaan28/kamera-kisi-sayaci.git
-   cd kamera-kisi-sayaci
-   ```
-2. Simply double-click **`PeopleCounter.exe`** (or your **"People Counter"** Desktop shortcut):
-   - Automatically initializes the environment and dependencies on first run.
-   - Starts the AI computer vision server and opens your browser at `http://localhost:8000`.
-   - Alternatively, you can use **`Setup.bat`** and **`Start.bat`**.
+### 1. Windows (1-Click Standalone Installer - Recommended)
+1. Download **[`PeopleCounter-Setup.exe`](https://github.com/HasanKaan28/kamera-kisi-sayaci/releases/latest/download/PeopleCounter-Setup.exe)**.
+2. Double-click **`PeopleCounter-Setup.exe`** and click **"Install & Launch"**:
+   - Automatically unpacks all files to a clean application folder (`AppData\Local\Programs\PeopleCounter`).
+   - Automatically configures the Python virtual environment and installs all AI vision packages.
+   - Creates a **"People Counter"** shortcut on your Desktop.
+   - Immediately starts the computer vision server and opens `http://localhost:8000` in your browser.
+3. Once installed, simply double-click the **"People Counter"** icon on your Desktop anytime!
 
 ---
 
